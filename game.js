@@ -6,9 +6,21 @@
 
   const DESIGN_W = 400;
   const DESIGN_H = 520;
-  const COVER_THRESHOLD = 0.72;
-  const HIT_RADIUS_DESIGN = 28; // generous for little hands / stylus
+  // A line only counts when it is traced almost end to end, so a child cannot
+  // finish a shape by scribbling over part of it.
+  const COVER_THRESHOLD = 0.93;
+  // ...and this much of what they drew has to sit on the guide, so scrubbing
+  // back and forth off the line earns nothing.
+  const ACCURACY_THRESHOLD = 0.7;
+  // Nearness is not enough on its own: a short wide curve like the chin almost
+  // fills its own bounding box, so random scribbling inside it scores as
+  // "near the line". The order the line gets covered in has to look like a
+  // sweep from one end to the other, not a random jumble.
+  const ORDER_THRESHOLD = 0.7;
+  const HIT_RADIUS_DESIGN = 16; // tight enough to stay neat, kind to small hands
   const SAMPLE_SPACING = 8;
+  // While a stylus is in use, ignore fingers: palm rejection.
+  const PALM_REJECT_MS = 1500;
 
   const I18N = {
     id: {
@@ -18,12 +30,16 @@
       pickTitle: "Pilih teman",
       back: "Kembali",
       stepOf: (n, t) => `Langkah ${n}/${t}`,
-      hintTrace: "Ikuti garis putus-putus ✎",
+      lineOf: (n, t) => `garis ${n}/${t}`,
+      hintTrace: "Ikuti garis putus-putus sampai habis ✎",
       hintColor: "Sentuh bagian, lalu pilih warna",
       region: "Bagian",
       cobaLagi: "Coba lagi ✨",
+      kurangRapi: "Pelan-pelan, ikuti garisnya ✨",
+      belumSelesai: "Terusin sampai ujung ya ✎",
       hebat: "Hebat! ⭐",
-      langkahSelesai: "Bagus! Lanjut…",
+      garisSelesai: "Bagus! Garis berikutnya…",
+      langkahSelesai: "Hebat! Lanjut langkah…",
       selesaiTrace: "Selesai menggambar! Saatnya warnai 🎨",
       doneTitle: "Hebat!",
       doneSub: "Gambarmu sudah jadi.",
@@ -40,12 +56,16 @@
       pickTitle: "Pick a friend",
       back: "Back",
       stepOf: (n, t) => `Step ${n}/${t}`,
-      hintTrace: "Follow the dashed line ✎",
+      lineOf: (n, t) => `line ${n}/${t}`,
+      hintTrace: "Follow the dashed line all the way ✎",
       hintColor: "Tap a part, then pick a color",
       region: "Part",
       cobaLagi: "Try again ✨",
+      kurangRapi: "Slow down and follow the line ✨",
+      belumSelesai: "Keep going to the end ✎",
       hebat: "Great! ⭐",
-      langkahSelesai: "Nice! Next…",
+      garisSelesai: "Nice! Next line…",
+      langkahSelesai: "Great! Next step…",
       selesaiTrace: "Drawing done! Time to color 🎨",
       doneTitle: "Awesome!",
       doneSub: "Your picture is ready.",
@@ -60,8 +80,9 @@
   let lang = "id";
   let character = null;
   let stepIndex = 0;
+  let strokeIndex = 0; // which guided line inside the current step
   let mode = "trace"; // trace | color | done
-  let covered = []; // bool per sample for current step
+  let covered = []; // bool per sample for the current guided line
   let samples = []; // {x,y} design coords
   let completedOutlines = []; // array of path strings already traced
   let kidStrokes = []; // completed step strokes as point arrays
@@ -70,6 +91,14 @@
   let selectedColor = null;
   let selectedRegion = null;
   let drawing = false;
+  let activePointerId = null;
+  let strokeMarked = []; // sample indices this pen-down covered, for rollback
+  let strokePts = 0; // points the child drew during this pen-down...
+  let strokeHits = 0; // ...of which this many landed on the guide
+  let coverOrder = []; // per sample: when it was first covered, -1 if not yet
+  let coverTick = 0;
+  let orderMatters = false; // false on shapes too small to sweep along
+  let lastPenAt = 0;
   let audioCtx = null;
   let reducedMotion = false;
 
@@ -403,30 +432,44 @@
 
       if (mode === "trace" && character) {
         const step = character.steps[stepIndex];
-        // Ghost / dashed guide for current step
-        for (const d of step.paths) {
-          strokePath(d, {
-            strokeStyle: "rgba(91,184,176,0.45)",
-            lineWidth: 18,
-            dash: [],
-          });
-          strokePath(d, {
-            strokeStyle: "#5BB8B0",
-            lineWidth: 4,
-            dash: [10, 10],
-          });
+
+        // What is still to come in this step, barely there: enough to see where
+        // it is heading without competing with the line to draw right now.
+        ctx.globalAlpha = 0.16;
+        for (let i = strokeIndex + 1; i < step.paths.length; i++) {
+          strokePath(step.paths[i].d, { strokeStyle: "#5BB8B0", lineWidth: 5 });
         }
-        // Coverage dots (subtle)
+        ctx.globalAlpha = 1;
+
+        // The one line to trace now. The band is narrower than the hit radius,
+        // so staying inside it always counts.
+        const cur = step.paths[strokeIndex].d;
+        strokePath(cur, { strokeStyle: "rgba(91,184,176,0.4)", lineWidth: 22 });
+        strokePath(cur, { strokeStyle: "#5BB8B0", lineWidth: 4, dash: [10, 10] });
+
+        // Green beads fill in as they go, so any gap left behind is obvious.
         for (let i = 0; i < samples.length; i++) {
-          if (covered[i]) {
-            const s = samples[i];
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, 3, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(107,191,138,0.5)";
-            ctx.fill();
-          }
+          if (!covered[i]) continue;
+          const s = samples[i];
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, 5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(107,191,138,0.75)";
+          ctx.fill();
         }
-        // Current stroke
+
+        // Where to put the pen down.
+        if (samples.length && !covered[0]) {
+          const s = samples[0];
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, 12, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(232,122,58,0.2)";
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = "#E87A3A";
+          ctx.fill();
+        }
+
         if (currentStroke) {
           drawKidStroke(currentStroke, "#E87A3A", 9);
         }
@@ -449,19 +492,94 @@
   }
 
   /* —— Trace logic —— */
-  function loadStepSamples() {
-    samples = [];
+
+  /** The one line the child is being guided through right now. */
+  function currentLine() {
+    if (!character) return null;
     const step = character.steps[stepIndex];
-    for (const d of step.paths) {
-      samples.push(...samplePath(d, SAMPLE_SPACING));
-    }
-    covered = new Array(samples.length).fill(false);
+    return step ? step.paths[strokeIndex] : null;
   }
 
+  function resetStrokeStats() {
+    strokeMarked = [];
+    strokePts = 0;
+    strokeHits = 0;
+  }
+
+  /** Share of this pen-down that landed on the guide. */
+  function strokeAccuracy() {
+    return strokePts ? strokeHits / strokePts : 1;
+  }
+
+  /** Take back everything this pen-down covered — used when it went off-line. */
+  function rollbackStroke() {
+    for (const i of strokeMarked) {
+      covered[i] = false;
+      coverOrder[i] = -1;
+    }
+    resetStrokeStats();
+  }
+
+  /** Start this guided line over from nothing. */
+  function resetLineProgress() {
+    covered = covered.map(() => false);
+    coverOrder = coverOrder.map(() => -1);
+    coverTick = 0;
+    resetStrokeStats();
+  }
+
+  /**
+   * How much the line was covered in one sweeping direction. A real trace fills
+   * the samples in order (either way round); a scribble fills them at random,
+   * which lands near 0.5.
+   */
+  function traceOrderliness() {
+    // On a cheek or a hair tie — smaller across than the hit radius — one dab
+    // of the pen reaches most of the line, so the order samples fill in says
+    // nothing. Coverage and accuracy still have to be met.
+    if (!orderMatters) return 1;
+    const times = [];
+    for (let i = 0; i < coverOrder.length; i++) {
+      if (coverOrder[i] >= 0) times.push(coverOrder[i]);
+    }
+    // Samples covered by the same pen point share a tick; those ties say
+    // nothing about direction, so they are not counted either way.
+    let rising = 0;
+    let falling = 0;
+    for (let i = 1; i < times.length; i++) {
+      if (times[i] > times[i - 1]) rising++;
+      else if (times[i] < times[i - 1]) falling++;
+    }
+    const moves = rising + falling;
+    if (moves < 3) return 1;
+    return Math.max(rising, falling) / moves;
+  }
+
+  function loadStrokeSamples() {
+    const line = currentLine();
+    samples = line ? samplePath(line.d, SAMPLE_SPACING) : [];
+    covered = new Array(samples.length).fill(false);
+    coverOrder = new Array(samples.length).fill(-1);
+    coverTick = 0;
+
+    let length = 0;
+    for (let i = 1; i < samples.length; i++) {
+      length += Math.hypot(samples[i].x - samples[i - 1].x, samples[i].y - samples[i - 1].y);
+    }
+    orderMatters = length > HIT_RADIUS_DESIGN * 8;
+
+    resetStrokeStats();
+  }
+
+  /**
+   * Coverage is taken from the interpolated stroke, so the gaps between the
+   * points a device reports still count. Every sample reached by one pen point
+   * shares that point's tick, which keeps traceOrderliness unbiased.
+   */
   function markCoverage(pts) {
     const r2 = HIT_RADIUS_DESIGN * HIT_RADIUS_DESIGN;
-    let newly = 0;
     for (const p of pts) {
+      const tick = coverTick++;
       for (let i = 0; i < samples.length; i++) {
         if (covered[i]) continue;
         const s = samples[i];
@@ -469,11 +587,32 @@
         const dy = p.y - s.y;
         if (dx * dx + dy * dy <= r2) {
           covered[i] = true;
-          newly++;
+          coverOrder[i] = tick;
+          strokeMarked.push(i);
         }
       }
     }
-    return newly;
+  }
+
+  /**
+   * Neatness is judged only on points the pen actually reported. Scoring the
+   * interpolated ones would flatter a zigzag across the guide, because the
+   * filled-in segments keep crossing the line.
+   */
+  function markAccuracy(pts) {
+    const r2 = HIT_RADIUS_DESIGN * HIT_RADIUS_DESIGN;
+    for (const p of pts) {
+      strokePts++;
+      for (let i = 0; i < samples.length; i++) {
+        const s = samples[i];
+        const dx = p.x - s.x;
+        const dy = p.y - s.y;
+        if (dx * dx + dy * dy <= r2) {
+          strokeHits++;
+          break;
+        }
+      }
+    }
   }
 
   function coverageRatio() {
@@ -483,28 +622,41 @@
     return n / samples.length;
   }
 
-  function finishStepSuccess() {
+  function finishStrokeSuccess() {
     const step = character.steps[stepIndex];
-    for (const d of step.paths) completedOutlines.push(d);
+    completedOutlines.push(step.paths[strokeIndex].d);
     if (currentStroke && currentStroke.length > 1) {
       kidStrokes.push(currentStroke.slice());
     }
     currentStroke = null;
-    sfxCheer();
-    showToast(t("langkahSelesai"), "cheer");
+    resetStrokeStats();
 
-    if (stepIndex >= character.steps.length - 1) {
+    const lastLine = strokeIndex >= step.paths.length - 1;
+    const lastStep = stepIndex >= character.steps.length - 1;
+
+    if (lastLine && lastStep) {
+      sfxCheer();
       mode = "color-pending";
       draw();
       setTimeout(() => {
         enterColorMode();
       }, reducedMotion ? 200 : 700);
-    } else {
-      stepIndex++;
-      loadStepSamples();
-      updateStepUI();
-      draw();
+      return;
     }
+
+    if (lastLine) {
+      sfxCheer();
+      showToast(t("langkahSelesai"), "cheer");
+      stepIndex++;
+      strokeIndex = 0;
+    } else {
+      sfxSoft();
+      showToast(t("garisSelesai"), "cheer");
+      strokeIndex++;
+    }
+    loadStrokeSamples();
+    updateStepUI();
+    draw();
   }
 
   function enterColorMode() {
@@ -529,21 +681,29 @@
     const total = character.steps.length;
     const badge = $("#step-badge");
     const label = $("#step-label");
+    const lineBadge = $("#stroke-badge");
     const dots = $("#progress-dots");
 
     if (mode === "trace") {
-      badge.textContent = t("stepOf", stepIndex + 1, total);
       const step = character.steps[stepIndex];
-      label.textContent = lang === "id" ? step.labelId : step.labelEn;
+      const line = step.paths[strokeIndex];
+      const stepName = lang === "id" ? step.labelId : step.labelEn;
+      const lineName = lang === "id" ? line.labelId : line.labelEn;
+      badge.textContent = t("stepOf", stepIndex + 1, total);
+      label.textContent = stepName === lineName ? stepName : stepName + " · " + lineName;
+      lineBadge.textContent = t("lineOf", strokeIndex + 1, step.paths.length);
+      lineBadge.style.display = "";
       $("#hint-trace").textContent = t("hintTrace");
       $("#hint-trace").style.display = "";
     } else if (mode === "color") {
       badge.textContent = lang === "id" ? "Warnai" : "Color";
       label.textContent = t("hintColor");
+      lineBadge.style.display = "none";
       $("#hint-trace").style.display = "none";
     } else {
       badge.textContent = "★";
       label.textContent = t("doneTitle");
+      lineBadge.style.display = "none";
     }
 
     dots.innerHTML = "";
@@ -572,74 +732,131 @@
   }
 
   /* —— Pointer / stylus —— */
+
+  /** Once the stylus is in play, a palm landing on the glass must not draw. */
+  function pointerAllowed(e) {
+    if (e.pointerType === "pen") {
+      lastPenAt = Date.now();
+      return true;
+    }
+    if (e.pointerType === "touch" && Date.now() - lastPenAt < PALM_REJECT_MS) {
+      return false;
+    }
+    return true;
+  }
+
+  function lineDone() {
+    return (
+      coverageRatio() >= COVER_THRESHOLD &&
+      strokeAccuracy() >= ACCURACY_THRESHOLD &&
+      traceOrderliness() >= ORDER_THRESHOLD
+    );
+  }
+
   function onPointerDown(e) {
     if (mode === "done" || mode === "color-pending") return;
+    if (!pointerAllowed(e)) return;
     ensureAudio();
     e.preventDefault();
-    canvas.setPointerCapture(e.pointerId);
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
 
     if (mode === "color") {
       handleColorTap(e);
       return;
     }
 
+    if (drawing) return; // a second finger must not hijack the stroke
     drawing = true;
+    activePointerId = e.pointerId;
+    resetStrokeStats();
     const p = screenToDesign(e.clientX, e.clientY);
     currentStroke = [p];
+    markAccuracy([p]);
     markCoverage([p]);
     draw();
   }
 
   function onPointerMove(e) {
+    // Apple Pencil reports hover moves; keep the palm-rejection window warm.
+    if (e.pointerType === "pen") lastPenAt = Date.now();
     if (!drawing || mode !== "trace") return;
+    if (activePointerId !== null && e.pointerId !== activePointerId) return;
     e.preventDefault();
-    const p = screenToDesign(e.clientX, e.clientY);
-    const last = currentStroke[currentStroke.length - 1];
-    if (last && Math.hypot(p.x - last.x, p.y - last.y) < 1.5) return;
-    currentStroke.push(p);
-    // sample along segment for coverage
+
+    // Coalesced events give the full stylus sample rate rather than one point
+    // per frame, which is what makes a traced curve land accurately.
+    // Some pointer events carry no coalesced list; fall back to the event itself.
+    let raw = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+    if (!raw || !raw.length) raw = [e];
+    const penPts = [];
     const mid = [];
-    if (last) {
-      const dist = Math.hypot(p.x - last.x, p.y - last.y);
-      const n = Math.ceil(dist / 4);
-      for (let i = 1; i <= n; i++) {
-        mid.push({
-          x: last.x + (p.x - last.x) * (i / n),
-          y: last.y + (p.y - last.y) * (i / n),
-        });
+    for (const ev of raw) {
+      const p = screenToDesign(ev.clientX, ev.clientY);
+      const last = currentStroke[currentStroke.length - 1];
+      if (last && Math.hypot(p.x - last.x, p.y - last.y) < 0.7) continue;
+      if (last) {
+        const dist = Math.hypot(p.x - last.x, p.y - last.y);
+        const n = Math.ceil(dist / 4);
+        for (let i = 1; i <= n; i++) {
+          mid.push({
+            x: last.x + (p.x - last.x) * (i / n),
+            y: last.y + (p.y - last.y) * (i / n),
+          });
+        }
+      } else {
+        mid.push(p);
       }
-    } else mid.push(p);
+      penPts.push(p);
+      currentStroke.push(p);
+    }
+    if (!mid.length) return;
+
+    markAccuracy(penPts);
     markCoverage(mid);
     draw();
 
-    if (coverageRatio() >= COVER_THRESHOLD) {
+    if (lineDone()) {
       drawing = false;
+      activePointerId = null;
       try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
-      finishStepSuccess();
+      finishStrokeSuccess();
     }
   }
 
   function onPointerUp(e) {
-    if (mode !== "trace") return;
+    if (mode !== "trace" || !drawing) return;
+    if (activePointerId !== null && e.pointerId !== activePointerId) return;
     e.preventDefault();
-    if (!drawing) return;
     drawing = false;
+    activePointerId = null;
 
-    const ratio = coverageRatio();
-    if (ratio >= COVER_THRESHOLD) {
-      finishStepSuccess();
-    } else if (currentStroke && currentStroke.length > 3) {
-      // Soft retry — clear only this stroke, keep guide & partial coverage? 
-      // Spec: wrong stroke = soft coba lagi, guide stays, try again.
-      // Keep partial coverage so progress isn't wiped; clear visual stroke.
-      sfxRetry();
-      showToast(t("cobaLagi"), "retry");
-      currentStroke = null;
-      draw();
-    } else {
-      currentStroke = null;
-      draw();
+    if (lineDone()) {
+      finishStrokeSuccess();
+      return;
     }
+
+    if (currentStroke && currentStroke.length > 3) {
+      sfxRetry();
+      if (strokeAccuracy() < ACCURACY_THRESHOLD) {
+        // Drawn off the guide: that attempt earns nothing.
+        rollbackStroke();
+        showToast(t("kurangRapi"), "retry");
+      } else if (coverageRatio() >= COVER_THRESHOLD) {
+        // Every bit is covered, but not by tracing it — scribbled over. Start
+        // the line again rather than hand it to them.
+        resetLineProgress();
+        showToast(t("kurangRapi"), "retry");
+      } else {
+        // On the guide but stopped short: keep what they traced and nudge them
+        // to carry on to the end.
+        resetStrokeStats();
+        showToast(t("belumSelesai"), "retry");
+      }
+    } else {
+      resetStrokeStats();
+    }
+    currentStroke = null;
+    draw();
   }
 
   function handleColorTap(e) {
@@ -745,8 +962,8 @@
     c.strokeStyle = "#2C2416";
     c.lineWidth = 7;
     for (const step of ch.steps) {
-      for (const d of step.paths) {
-        c.stroke(makePath2D(d));
+      for (const line of step.paths) {
+        c.stroke(makePath2D(line.d));
       }
     }
     c.restore();
@@ -755,6 +972,7 @@
   function startGame(charId) {
     character = window.GAMBOR_CHARACTERS.find((c) => c.id === charId);
     stepIndex = 0;
+    strokeIndex = 0;
     mode = "trace";
     completedOutlines = [];
     kidStrokes = [];
@@ -762,7 +980,8 @@
     fillColors = {};
     selectedRegion = null;
     drawing = false;
-    loadStepSamples();
+    activePointerId = null;
+    loadStrokeSamples();
     $("#palette").classList.remove("visible");
     $("#region-hint").classList.remove("visible");
     $("#btn-done-color").style.display = "none";
@@ -811,8 +1030,8 @@
     $("#btn-undo").addEventListener("click", () => {
       if (mode !== "trace") return;
       currentStroke = null;
-      // reset coverage for current step so they can retry cleanly
-      covered = covered.map(() => false);
+      // wipe only the line in progress so they can retrace it cleanly
+      resetLineProgress();
       draw();
       showToast(t("cobaLagi"), "retry");
       sfxRetry();
@@ -851,18 +1070,34 @@
 
   // Debug API for preview screenshots / QA (not shown in UI)
   window.__gambarDebug = {
-    getState: () => ({ mode, stepIndex, lang, charId: character && character.id, coverage: coverageRatio() }),
-    forceCompleteStep: () => {
+    getState: () => ({ mode, stepIndex, strokeIndex, lang, charId: character && character.id, coverage: coverageRatio(), accuracy: strokeAccuracy(), orderliness: traceOrderliness() }),
+    // Lets a test drive real pointer events along the guide the child sees.
+    getSamples: () => samples.map((s) => ({ x: s.x, y: s.y })),
+    designToClient: (x, y) => {
+      const rect = canvas.getBoundingClientRect();
+      return { x: rect.left + viewOffsetX + x * viewScale, y: rect.top + viewOffsetY + y * viewScale };
+    },
+    forceCompleteLine: () => {
       if (mode !== "trace" || !character) return false;
       covered = covered.map(() => true);
-      finishStepSuccess();
+      finishStrokeSuccess();
+      return true;
+    },
+    forceCompleteStep: async () => {
+      if (mode !== "trace" || !character) return false;
+      const target = stepIndex;
+      while (mode === "trace" && stepIndex === target) {
+        covered = covered.map(() => true);
+        finishStrokeSuccess();
+        await new Promise((r) => setTimeout(r, 20));
+      }
       return true;
     },
     completeAllTrace: async () => {
       while (mode === "trace") {
         covered = covered.map(() => true);
-        finishStepSuccess();
-        await new Promise((r) => setTimeout(r, 50));
+        finishStrokeSuccess();
+        await new Promise((r) => setTimeout(r, 20));
       }
       return mode;
     },
@@ -874,13 +1109,11 @@
     jumpToColor: async () => {
       while (mode === "trace") {
         covered = covered.map(() => true);
-        const last = stepIndex >= character.steps.length - 1;
-        finishStepSuccess();
-        if (last) break;
-        await new Promise((r) => setTimeout(r, 40));
+        finishStrokeSuccess();
+        await new Promise((r) => setTimeout(r, 12));
       }
       // wait for enterColorMode timeout
-      for (let i = 0; i < 40 && mode !== "color"; i++) {
+      for (let i = 0; i < 60 && mode !== "color"; i++) {
         await new Promise((r) => setTimeout(r, 50));
       }
     },
