@@ -20,21 +20,40 @@ You can also open `index.html` via Files app if Safari allows local file access;
 |------|------|
 | `index.html` | Shell + PWA meta |
 | `styles.css` | Tablet-first UI |
-| `characters.js` | 4 soft kawaii characters, step paths, fill regions, palettes |
+| `characters.js` | 4 chibi kids — shared body, step paths, fill regions, palettes |
 | `game.js` | Trace coverage, pointer/stylus, color fill, i18n, audio |
 | `manifest.webmanifest` | Standalone theme |
 | `preview/` | Screenshots |
 
 ## Characters & steps
 
-Soft organic kawaii/chibi (Brian correction #2) — big sparkly eyes, scalloped hems, sausage limbs:
+Chibi kids drawn on a 400x520 design grid with real child proportions: the head
+is about a third of the figure, the eyes sit in the lower half of the face, the
+shoulders are narrower than the head, and the arms and legs taper properly.
 
-1. **Cewek ekor** — light-brown high ponytail + yellow band, yellow wavy-hem tee, blue pants, grey shoes, blush  
-2. **Cowok** — dark soft-spike hair, green tee, dark-blue shorts, brown shoes  
-3. **Cewek pita** — dark bob + blunt bangs + pink side bow, light-pink scalloped dress, dark-pink shoes  
-4. **Cewek overall** — brown side buns, yellow tee + blue overalls  
+1. **Cewek ekor** — brown hair with a high ponytail and yellow tie, yellow tee, blue trousers, grey shoes
+2. **Cowok** — soft tousled dark hair, green tee, blue shorts, brown shoes
+3. **Cewek pita** — dark bob with a pink side bow, pink A-line dress with a scalloped hem, pink shoes
+4. **Cewek overall** — brown twin buns, yellow tee under blue dungarees, brown shoes
 
-**Flow:** Trace all steps (≥72% guide coverage, generous hit radius) → **Warnai** (tap region + palette) → **Hebat!** card.
+**Steps (6-7 per character):** Kepala -> Mata & senyum -> Rambut -> Baju ->
+Tangan -> Kaki & sepatu (plus Pita / Overall where relevant).
+
+**Flow:** Trace all steps (>=72% guide coverage, generous hit radius) ->
+**Warnai** (tap region + palette) -> **Hebat!** card.
+
+### Editing the artwork
+
+`characters.js` builds every path from helpers (`ell` for ellipses, `mir` to
+mirror around the centre line x=200) on top of one shared body, so a change to
+the head or the arms applies to all four kids. Two rules keep it rendering
+correctly:
+
+- Only absolute `M` / `L` / `C` / `Q` / `Z` — that is all the parser in
+  `game.js` understands.
+- Subpaths inside a single `fillRegion` must not overlap each other: the canvas
+  fills with `evenodd`, so an overlap punches a hole. Overlap between two
+  *different* regions is fine — the later one simply paints on top.
 
 ## UI language
 
