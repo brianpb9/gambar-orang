@@ -653,6 +653,7 @@
       emoji: cfg.emoji,
       width: cfg.width,
       height: cfg.height,
+      wide: true,
       steps: cfg.propsLast ? steps : steps,
       fillRegions: regions,
       palette: cfg.palette,
@@ -695,6 +696,118 @@
   const CATX = 452 - 200 * CATS;
   const CATY = 470 - 431 * CATS;
   const CT = function (d) { return xf(d, CATS, CATX, CATY); };
+
+
+  /* ═══════════════════════ numbers 1-100 ═══════════════════════ */
+
+  /**
+   * Each digit as the strokes a child is taught to write it with, in order and
+   * in the direction the pen travels, drawn in a 200 x 300 box. These are
+   * skeletons, not outlines: what is being practised is the path of the pen.
+   */
+  const DIGIT_STROKES = {
+    "0": [["Bulat", "Round", "M 100 32 C 68 32 42 85 42 150 C 42 215 68 268 100 268 C 132 268 158 215 158 150 C 158 85 132 32 100 32 Z"]],
+    "1": [["Turun", "Down", "M 60 76 L 100 32 L 100 268"]],
+    "2": [["Lengkung lalu alas", "Curve then base", "M 48 84 C 52 36 150 30 152 86 C 154 130 96 186 46 268 L 158 268"]],
+    "3": [["Dua lengkung", "Two curves", "M 48 66 C 66 28 156 36 146 90 C 140 124 108 138 88 140 C 120 138 162 156 156 208 C 150 262 62 282 44 240"]],
+    "4": [
+      ["Miring lalu datar", "Slant then across", "M 120 32 L 40 196 L 160 196"],
+      ["Turun", "Down", "M 120 32 L 120 268"],
+    ],
+    "5": [
+      ["Turun lalu perut", "Down then belly", "M 62 40 L 62 140 C 100 118 158 140 158 200 C 158 256 96 282 52 252"],
+      ["Topi", "Top bar", "M 62 40 L 152 40"],
+    ],
+    "6": [["Lengkung lalu gelung", "Curve then loop", "M 138 42 C 96 28 50 82 46 160 C 43 222 68 268 104 268 C 140 268 158 238 156 206 C 154 174 126 152 98 156 C 76 159 56 176 48 196"]],
+    "7": [["Datar lalu miring", "Across then slant", "M 44 40 L 158 40 L 82 268"]],
+    "8": [["Angka delapan", "Figure eight", "M 100 32 C 62 32 52 76 78 100 C 104 124 158 132 158 196 C 158 248 132 268 100 268 C 68 268 42 248 42 196 C 42 132 96 124 122 100 C 148 76 138 32 100 32 Z"]],
+    "9": [["Gelung lalu turun", "Loop then down", "M 156 118 C 156 84 132 58 100 58 C 68 58 46 84 46 118 C 46 152 68 176 100 176 C 130 176 152 156 156 124 C 156 180 154 230 148 268"]],
+  };
+
+  const DIGIT_W = 200;
+  const DIGIT_H = 300;
+  const CARD_PAD = 40;
+
+  /** Rounded rectangle, used as the board the number sits on. */
+  function roundRect(x, y, w, h, r) {
+    const k = r * 0.45;
+    return [
+      "M " + r1(x + r) + " " + r1(y),
+      "L " + r1(x + w - r) + " " + r1(y),
+      "C " + r1(x + w - k) + " " + r1(y) + " " + r1(x + w) + " " + r1(y + k) + " " + r1(x + w) + " " + r1(y + r),
+      "L " + r1(x + w) + " " + r1(y + h - r),
+      "C " + r1(x + w) + " " + r1(y + h - k) + " " + r1(x + w - k) + " " + r1(y + h) + " " + r1(x + w - r) + " " + r1(y + h),
+      "L " + r1(x + r) + " " + r1(y + h),
+      "C " + r1(x + k) + " " + r1(y + h) + " " + r1(x) + " " + r1(y + h - k) + " " + r1(x) + " " + r1(y + h - r),
+      "L " + r1(x) + " " + r1(y + r),
+      "C " + r1(x) + " " + r1(y + k) + " " + r1(x + k) + " " + r1(y) + " " + r1(x + r) + " " + r1(y),
+      "Z",
+    ].join(" ");
+  }
+
+  // One colour per band of ten, so each row of the picking screen reads apart.
+  const BOARD_COLOURS = [
+    "#FBD24B", "#8FD3A6", "#9FD2EC", "#F7A8C4", "#F5A65B",
+    "#C3B2E8", "#7FB7E8", "#F0C987", "#8FD8D2", "#F09B9B",
+  ];
+  const NUMBER_PALETTE = [
+    "#FBD24B", "#8FD3A6", "#9FD2EC", "#F7A8C4", "#F5A65B",
+    "#C3B2E8", "#E4604A", "#6DBE72", "#FFFFFF", "#3B2A20",
+  ];
+
+  /**
+   * One number to trace: each digit is its own step, so a child is walked
+   * through "4" and then "7" rather than being handed "47" whole. The board
+   * behind it is traced last and is the part that gets coloured — the numeral
+   * itself stays a pen line, which is what it is.
+   */
+  function numberCard(n) {
+    const text = String(n);
+    const width = CARD_PAD * 2 + text.length * DIGIT_W;
+    const height = DIGIT_H + CARD_PAD * 2;
+    const band = Math.ceil(n / 10);
+    const lo = (band - 1) * 10 + 1;
+    const hi = band * 10;
+
+    const steps = [];
+    for (let i = 0; i < text.length; i++) {
+      const tx = CARD_PAD + i * DIGIT_W;
+      const strokes = DIGIT_STROKES[text.charAt(i)];
+      steps.push({
+        id: "digit" + i,
+        labelId: text.length > 1 ? "Angka " + text.charAt(i) : "Angka " + text,
+        labelEn: text.length > 1 ? "Digit " + text.charAt(i) : "Number " + text,
+        paths: strokes.map(function (st) {
+          return pl(xf(st[2], 1, tx, CARD_PAD), st[0], st[1]);
+        }),
+      });
+    }
+
+    const board = roundRect(14, 12, width - 28, height - 24, 34);
+    steps.push({
+      id: "board",
+      labelId: "Papan angka",
+      labelEn: "Number board",
+      paths: [pl(board, "Bingkai", "Frame")],
+    });
+
+    return {
+      group: "angka" + band,
+      groupTitleId: "Angka " + lo + "–" + hi,
+      groupTitleEn: "Numbers " + lo + "–" + hi,
+      id: "angka-" + n,
+      nameId: text,
+      nameEn: text,
+      emoji: "",
+      width: width,
+      height: height,
+      steps: steps,
+      fillRegions: [
+        { id: "board", labelId: "Papan", labelEn: "Board", path: board, defaultColor: BOARD_COLOURS[(band - 1) % BOARD_COLOURS.length] },
+      ],
+      palette: NUMBER_PALETTE,
+    };
+  }
 
   /* ───────────────────────────── characters ───────────────────────────── */
 
@@ -1200,4 +1313,6 @@
       palette: ["#F6CBA6", "#8A5A3B", "#6DBE72", "#D2604F", "#F3E2C2", "#9FD2EC", "#E8A15C", "#FBD24B", "#7FB7E8", "#E0719B", "#FFFFFF", "#3B2A20"],
     }),
   ];
+
+  for (let n = 1; n <= 100; n++) window.GAMBOR_CHARACTERS.push(numberCard(n));
 })();

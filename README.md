@@ -25,7 +25,7 @@ You can also open `index.html` via Files app if Safari allows local file access;
 | `manifest.webmanifest` | Standalone theme |
 | `preview/` | Screenshots |
 
-11 pictures in all, 313 guided lines.
+111 cards in all, 645 guided lines.
 
 ## Pictures
 
@@ -52,6 +52,21 @@ under the sun, 42 lines.
 
 **Pemandangan — Keluarga di taman** (900x540): the family with a cat, a tree, a
 house, sun and cloud, 48 lines.
+
+**Angka 1–100** — one card per number, banded ten at a time. Each digit is the
+strokes a child is taught to write it with, in order and in the direction the
+pen travels: 4 is "slant then across" and then the downstroke, 5 is "down then
+belly" and then the top bar last. A digit is a step, so 47 is walked through as
+*Angka 4* then *Angka 7* rather than handed over whole. These are skeletons,
+not outlines — what is being practised is the path of the pen. The board behind
+the number is traced last and is what gets coloured; the numeral stays a pen
+line, which is what it is.
+
+A card is 200 units wide per digit, so the tolerance (which follows the canvas)
+keeps a 1 and a 100 feeling the same under the hand.
+
+While tracing, the rest of the picture is ghosted in faintly — on a number
+card that is what tells a child the 4 they are drawing is going to become a 47.
 
 Every person in a scene is the same body as the single character, scaled and
 moved onto the scene's ground line by `scenePerson`, and cut down to ten lines

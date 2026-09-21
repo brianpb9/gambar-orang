@@ -452,8 +452,15 @@
       if (mode === "trace" && character) {
         const step = character.steps[stepIndex];
 
-        // What is still to come in this step, barely there: enough to see where
-        // it is heading without competing with the line to draw right now.
+        // What is still to come, barely there: enough to see where this is
+        // heading — and, on a number, that the 4 is going to become a 47 —
+        // without competing with the line to draw right now.
+        ctx.globalAlpha = 0.07;
+        for (let s = stepIndex + 1; s < character.steps.length; s++) {
+          for (const line of character.steps[s].paths) {
+            strokePath(line.d, { strokeStyle: "#2C2416", lineWidth: 5 });
+          }
+        }
         ctx.globalAlpha = 0.16;
         for (let i = strokeIndex + 1; i < step.paths.length; i++) {
           strokePath(step.paths[i].d, { strokeStyle: "#5BB8B0", lineWidth: 5 });
@@ -1051,12 +1058,18 @@
     bands.forEach((band) => {
       const title = document.createElement("h3");
       title.className = "group-title";
-      title.textContent = t("groupTitles")[band.key] || band.key;
+      // A band can name itself (the number bands do); otherwise it is one of
+      // the fixed levels and the name is translated.
+      const head = band.items[0];
+      title.textContent =
+        (lang === "id" ? head.groupTitleId : head.groupTitleEn) ||
+        t("groupTitles")[band.key] ||
+        band.key;
       grid.appendChild(title);
       band.items.forEach((ch) => {
       const card = document.createElement("button");
-      // A scene is drawn on a wide canvas; give it a card the same shape.
-      const wide = (ch.width || BASE_W) > (ch.height || BASE_H);
+      // Scenes ask for a card the shape they are drawn in.
+      const wide = ch.wide === true;
       card.className = "char-card" + (wide ? " wide" : "");
       card.type = "button";
       const preview = document.createElement("div");
@@ -1066,7 +1079,7 @@
       cv.height = wide ? 250 : 250;
       preview.appendChild(cv);
       const span = document.createElement("span");
-      span.textContent = (lang === "id" ? ch.nameId : ch.nameEn) + " " + ch.emoji;
+      span.textContent = ((lang === "id" ? ch.nameId : ch.nameEn) + " " + (ch.emoji || "")).trim();
       card.appendChild(preview);
       card.appendChild(span);
       card.addEventListener("click", () => startGame(ch.id));
