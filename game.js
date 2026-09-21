@@ -141,6 +141,11 @@
     });
     $("#lang-toggle").textContent = t("langBtn");
     if (character) updateStepUI();
+    if (mode === "done") {
+      // The finish card is filled in by showDone, not by data-i18n.
+      $("#done-title").textContent = t("doneTitle");
+      $("#done-sub").textContent = t("doneSub");
+    }
     // The grid is 111 cards; only rebuild it when it is the screen in view.
     if ($("#screen-pick").classList.contains("active")) renderCharCards();
   }
@@ -754,7 +759,9 @@
       // they leave or start another card first, this must not land on it.
       colourTimer = setTimeout(() => {
         colourTimer = null;
-        if (mode === "color-pending") enterColorMode();
+        if (mode !== "color-pending") return;
+        if (character.skipColour) finishWithoutColouring();
+        else enterColorMode();
       }, reducedMotion ? 200 : 700);
       return;
     }
@@ -772,6 +779,16 @@
     loadStrokeSamples();
     updateStepUI();
     draw();
+  }
+
+  /**
+   * Cards that are handwriting practice have nothing to colour. Fill them in
+   * with their own colours so the finished card still looks finished, and go
+   * straight to the star.
+   */
+  function finishWithoutColouring() {
+    for (const r of character.fillRegions) fillColors[r.id] = r.defaultColor;
+    showDone();
   }
 
   function enterColorMode() {
@@ -1148,6 +1165,7 @@
     drawing = false;
     activePointerId = null;
     loadStrokeSamples();
+    $("#palette").innerHTML = ""; // drop the last card's colours
     $("#palette").classList.remove("visible");
     $("#region-hint").classList.remove("visible");
     $("#btn-done-color").style.display = "none";

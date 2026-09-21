@@ -798,6 +798,9 @@
       width: width,
       height: height,
       steps: steps,
+      // Writing practice, not a colouring page: the board is there so the card
+      // reads as a card, and it fills itself in when the number is finished.
+      skipColour: true,
       fillRegions: [
         { id: "board", labelId: "Papan", labelEn: "Board", path: board, defaultColor: BOARD_COLOURS[(band - 1) % BOARD_COLOURS.length] },
       ],

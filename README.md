@@ -61,7 +61,10 @@ belly" and then the top bar last. A digit is a step, so 47 is walked through as
 not outlines — what is being practised is the path of the pen, so only the
 numeral is traced. The board behind it is not: drawing a rectangle teaches
 nothing and stood between the child and finishing each of the hundred cards.
-It is there to colour once the number is written.
+
+A number card skips colouring entirely (`skipColour`) and goes straight to the
+star: it is handwriting practice, not a colouring page. The board fills itself
+in so the finished card still looks finished.
 
 A card is 200 units wide per digit, so the tolerance (which follows the canvas)
 keeps a 1 and a 100 feeling the same under the hand.
@@ -127,7 +130,12 @@ zigzag are.
 1.5s — palm rejection. After that window a finger works normally, so the game
 is still playable without a stylus.
 
-**Flow:** Trace every line -> **Warnai** (tap region + palette) -> **Hebat!** card.
+**Flow:** Trace every line -> **Warnai** (tap region + palette) -> **Hebat!**
+card. Number cards go straight from the last line to **Hebat!**.
+
+On a phone the palette takes a full-width row of its own; sharing the row with
+the Done button turned it into a narrow column five rows tall that ate a third
+of the screen and cropped the drawing.
 
 ### Editing the artwork
 

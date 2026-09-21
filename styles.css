@@ -479,6 +479,20 @@ h1 {
   .btn-primary { box-shadow: 0 4px 0 #D4653A; }
 }
 
+/* On a phone the palette became a narrow column of swatches beside the button,
+   a third of the screen tall, and the drawing was cropped to fit. Give it a
+   row of its own across the full width. */
+@media (max-width: 560px) {
+  .palette {
+    flex: 1 0 100%;
+    justify-content: flex-start;
+  }
+  .swatch {
+    width: 42px;
+    height: 42px;
+  }
+}
+
 /* Landscape tablet polish */
 @media (orientation: landscape) and (min-width: 800px) {
   .char-grid { max-width: 1000px; }
