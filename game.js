@@ -4,8 +4,13 @@
 (function () {
   "use strict";
 
-  const DESIGN_W = 400;
-  const DESIGN_H = 520;
+  // One person fits this grid. A scene declares its own width/height and the
+  // tolerance grows with it, so a line feels the same under the hand whether
+  // it belongs to a single character or to a wide family picture.
+  const BASE_W = 400;
+  const BASE_H = 520;
+  let designW = BASE_W;
+  let designH = BASE_H;
   // A line only counts when it is traced almost end to end, so a child cannot
   // finish a shape by scribbling over part of it.
   const COVER_THRESHOLD = 0.93;
@@ -16,8 +21,15 @@
   // fills its own bounding box, so random scribbling inside it scores as
   // "near the line". The order the line gets covered in has to look like a
   // sweep from one end to the other, not a random jumble.
-  const ORDER_THRESHOLD = 0.7;
-  const HIT_RADIUS_DESIGN = 16; // tight enough to stay neat, kind to small hands
+  // Measured: an honest trace scores 1.00, scribbling over a shape peaks at
+  // about 0.74 across a dozen attempts. 0.85 sits clear of both.
+  const ORDER_THRESHOLD = 0.85;
+  // Tracing a line means travelling along it about once. Scribbling over the
+  // same shape covers many times its length, whatever the shape is, which is
+  // what makes this the sharper test of the two.
+  const MAX_TRAVEL = 5;
+  const HIT_RADIUS_BASE = 16; // tight enough to stay neat, kind to small hands
+  let hitRadius = HIT_RADIUS_BASE;
   const SAMPLE_SPACING = 8;
   // While a stylus is in use, ignore fingers: palm rejection.
   const PALM_REJECT_MS = 1500;
@@ -27,7 +39,8 @@
       title: "Gambar Orang",
       subtitle: "Langkah demi langkah",
       start: "Mulai!",
-      pickTitle: "Pilih teman",
+      pickTitle: "Pilih gambar",
+      groupTitles: { teman: "Teman", keluarga: "Keluarga", pemandangan: "Pemandangan" },
       back: "Kembali",
       stepOf: (n, t) => `Langkah ${n}/${t}`,
       lineOf: (n, t) => `garis ${n}/${t}`,
@@ -53,7 +66,8 @@
       title: "Draw a Person",
       subtitle: "Step by step",
       start: "Start!",
-      pickTitle: "Pick a friend",
+      pickTitle: "Pick a picture",
+      groupTitles: { teman: "Friends", keluarga: "Family", pemandangan: "Scenes" },
       back: "Back",
       stepOf: (n, t) => `Step ${n}/${t}`,
       lineOf: (n, t) => `line ${n}/${t}`,
@@ -95,8 +109,13 @@
   let strokeMarked = []; // sample indices this pen-down covered, for rollback
   let strokePts = 0; // points the child drew during this pen-down...
   let strokeHits = 0; // ...of which this many landed on the guide
-  let coverOrder = []; // per sample: when it was first covered, -1 if not yet
+  let coverOrder = []; // per sample: when it was first covered; see markCoverage
   let coverTick = 0;
+  let orderSpan = 3; // samples either side of the pen that count towards order
+  let lineLength = 0; // how long the guided line is, in design units
+  let lineTravel = 0; // pen distance kept from earlier strokes on this line
+  let strokeTravel = 0; // ...and from the stroke in progress
+  let lastPenPt = null;
   let orderMatters = false; // false on shapes too small to sweep along
   let lastPenAt = 0;
   let audioCtx = null;
@@ -338,11 +357,11 @@
     canvas.style.height = rect.height + "px";
 
     const pad = 16;
-    const sx = (rect.width - pad * 2) / DESIGN_W;
-    const sy = (rect.height - pad * 2) / DESIGN_H;
+    const sx = (rect.width - pad * 2) / designW;
+    const sy = (rect.height - pad * 2) / designH;
     viewScale = Math.min(sx, sy);
-    viewOffsetX = (rect.width - DESIGN_W * viewScale) / 2;
-    viewOffsetY = (rect.height - DESIGN_H * viewScale) / 2;
+    viewOffsetX = (rect.width - designW * viewScale) / 2;
+    viewOffsetY = (rect.height - designH * viewScale) / 2;
 
     draw();
   }
@@ -504,6 +523,14 @@
     strokeMarked = [];
     strokePts = 0;
     strokeHits = 0;
+    strokeTravel = 0;
+    lastPenPt = null;
+  }
+
+  /** Pen distance so far on this line, against the length of the line itself. */
+  function travelRatio() {
+    if (!lineLength) return 0;
+    return (lineTravel + strokeTravel) / lineLength;
   }
 
   /** Share of this pen-down that landed on the guide. */
@@ -511,19 +538,23 @@
     return strokePts ? strokeHits / strokePts : 1;
   }
 
+  const NOT_COVERED = -1;
+  const ORDER_UNKNOWN = -2; // covered, but says nothing about direction
+
   /** Take back everything this pen-down covered — used when it went off-line. */
   function rollbackStroke() {
     for (const i of strokeMarked) {
       covered[i] = false;
-      coverOrder[i] = -1;
+      coverOrder[i] = NOT_COVERED;
     }
     resetStrokeStats();
   }
 
   /** Start this guided line over from nothing. */
   function resetLineProgress() {
+    lineTravel = 0;
     covered = covered.map(() => false);
-    coverOrder = coverOrder.map(() => -1);
+    coverOrder = coverOrder.map(() => NOT_COVERED);
     coverTick = 0;
     resetStrokeStats();
   }
@@ -534,21 +565,30 @@
    * which lands near 0.5.
    */
   function traceOrderliness() {
-    // On a cheek or a hair tie — smaller across than the hit radius — one dab
-    // of the pen reaches most of the line, so the order samples fill in says
-    // nothing. Coverage and accuracy still have to be met.
+    // On a cheek, a hair tie, or any outline thinner across than the hit
+    // radius, one dab of the pen reaches most of the line, so the order the
+    // samples fill in says nothing. Coverage and accuracy still have to be met.
     if (!orderMatters) return 1;
     const times = [];
     for (let i = 0; i < coverOrder.length; i++) {
       if (coverOrder[i] >= 0) times.push(coverOrder[i]);
     }
+    // Where an outline runs alongside itself most of the way, nearly every
+    // sample gets reached across the fold and there is nothing left to judge
+    // direction by. Say so rather than failing an honest trace; coverage and
+    // accuracy still have to be met.
+    if (times.length < 4) return 1;
+
     // Samples covered by the same pen point share a tick; those ties say
-    // nothing about direction, so they are not counted either way.
+    // nothing about direction, so they are not counted either way. Compared
+    // round the loop, so starting a closed outline part-way is not punished.
     let rising = 0;
     let falling = 0;
-    for (let i = 1; i < times.length; i++) {
-      if (times[i] > times[i - 1]) rising++;
-      else if (times[i] < times[i - 1]) falling++;
+    for (let k = 1; k <= times.length; k++) {
+      const a = times[k - 1];
+      const b = times[k % times.length];
+      if (b > a) rising++;
+      else if (b < a) falling++;
     }
     const moves = rising + falling;
     if (moves < 3) return 1;
@@ -559,14 +599,53 @@
     const line = currentLine();
     samples = line ? samplePath(line.d, SAMPLE_SPACING) : [];
     covered = new Array(samples.length).fill(false);
-    coverOrder = new Array(samples.length).fill(-1);
+    coverOrder = new Array(samples.length).fill(NOT_COVERED);
     coverTick = 0;
+    lineTravel = 0;
 
     let length = 0;
     for (let i = 1; i < samples.length; i++) {
       length += Math.hypot(samples[i].x - samples[i - 1].x, samples[i].y - samples[i - 1].y);
     }
-    orderMatters = length > HIT_RADIUS_DESIGN * 8;
+    lineLength = length;
+    orderSpan = Math.ceil(hitRadius / SAMPLE_SPACING) + 1;
+
+    const subpaths = line ? (line.d.match(/M/g) || []).length : 1;
+
+    // Does the outline run back alongside itself? Being near a later part is
+    // not enough on its own — a closed shape meets its own start, and the sun
+    // has teeth. It is a fold when the line returns within the tolerance after
+    // travelling a long way round, measured the shorter way so the seam of a
+    // closed shape does not count.
+    const r2 = hitRadius * hitRadius;
+    const farAlong = length * 0.25;
+    let probes = 0;
+    let folded = 0;
+    for (let i = 0; i < samples.length; i += 2) {
+      probes++;
+      for (let j = i + 3; j < samples.length; j++) {
+        const dx = samples[i].x - samples[j].x;
+        const dy = samples[i].y - samples[j].y;
+        if (dx * dx + dy * dy > r2) continue;
+        const step = j - i;
+        const along = Math.min(step, samples.length - step) * SAMPLE_SPACING;
+        if (along >= farAlong) {
+          folded++;
+          break;
+        }
+      }
+    }
+
+    // The sweep test reads the order the samples were filled in. It only means
+    // something on one unbroken outline that keeps its distance from itself.
+    // A line made of several strokes, like six whiskers, is filled stroke by
+    // stroke and reads as a jumble however carefully it was drawn; a folded
+    // one has both sides covered at once. On those, coverage and accuracy
+    // carry the line on their own.
+    orderMatters =
+      length > hitRadius * 8 &&
+      subpaths === 1 &&
+      (!probes || folded / probes <= 0.1);
 
     resetStrokeStats();
   }
@@ -577,9 +656,23 @@
    * shares that point's tick, which keeps traceOrderliness unbiased.
    */
   function markCoverage(pts) {
-    const r2 = HIT_RADIUS_DESIGN * HIT_RADIUS_DESIGN;
+    const r2 = hitRadius * hitRadius;
     for (const p of pts) {
       const tick = coverTick++;
+
+      // Where on the line the pen actually is.
+      let anchor = 0;
+      let best = Infinity;
+      for (let i = 0; i < samples.length; i++) {
+        const dx = p.x - samples[i].x;
+        const dy = p.y - samples[i].y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < best) {
+          best = d2;
+          anchor = i;
+        }
+      }
+
       for (let i = 0; i < samples.length; i++) {
         if (covered[i]) continue;
         const s = samples[i];
@@ -587,7 +680,17 @@
         const dy = p.y - s.y;
         if (dx * dx + dy * dy <= r2) {
           covered[i] = true;
-          coverOrder[i] = tick;
+          // Only the stretch of line around the pen says anything about which
+          // way it is travelling. Where an outline folds back on itself — the
+          // two sides of a leg, closer together than the tolerance — the far
+          // side gets reached incidentally, and counting it as "drawn now"
+          // would make an honest trace look like a jumble.
+          // Measured round the loop: on a closed outline the first and last
+          // samples sit on top of each other, and crossing that seam must not
+          // look like a jump to the far end of the line.
+          const step = Math.abs(i - anchor);
+          const along = Math.min(step, samples.length - step);
+          coverOrder[i] = along <= orderSpan ? tick : ORDER_UNKNOWN;
           strokeMarked.push(i);
         }
       }
@@ -600,9 +703,11 @@
    * filled-in segments keep crossing the line.
    */
   function markAccuracy(pts) {
-    const r2 = HIT_RADIUS_DESIGN * HIT_RADIUS_DESIGN;
+    const r2 = hitRadius * hitRadius;
     for (const p of pts) {
       strokePts++;
+      if (lastPenPt) strokeTravel += Math.hypot(p.x - lastPenPt.x, p.y - lastPenPt.y);
+      lastPenPt = p;
       for (let i = 0; i < samples.length; i++) {
         const s = samples[i];
         const dx = p.x - s.x;
@@ -745,11 +850,15 @@
     return true;
   }
 
+  function tracedNotScrubbed() {
+    return traceOrderliness() >= ORDER_THRESHOLD && travelRatio() <= MAX_TRAVEL;
+  }
+
   function lineDone() {
     return (
       coverageRatio() >= COVER_THRESHOLD &&
       strokeAccuracy() >= ACCURACY_THRESHOLD &&
-      traceOrderliness() >= ORDER_THRESHOLD
+      tracedNotScrubbed()
     );
   }
 
@@ -841,6 +950,10 @@
         // Drawn off the guide: that attempt earns nothing.
         rollbackStroke();
         showToast(t("kurangRapi"), "retry");
+      } else if (!tracedNotScrubbed()) {
+        // Scrubbed back and forth over the shape rather than drawn along it.
+        resetLineProgress();
+        showToast(t("kurangRapi"), "retry");
       } else if (coverageRatio() >= COVER_THRESHOLD) {
         // Every bit is covered, but not by tracing it — scribbled over. Start
         // the line again rather than hand it to them.
@@ -849,6 +962,7 @@
       } else {
         // On the guide but stopped short: keep what they traced and nudge them
         // to carry on to the end.
+        lineTravel += strokeTravel;
         resetStrokeStats();
         showToast(t("belumSelesai"), "retry");
       }
@@ -920,15 +1034,36 @@
   function renderCharCards() {
     const grid = $("#char-grid");
     grid.innerHTML = "";
-    window.GAMBOR_CHARACTERS.forEach((ch) => {
+
+    // Keep the roster in file order but band it by level, so the single
+    // characters, the family group and the full scenes read as a progression.
+    const bands = [];
+    for (const ch of window.GAMBOR_CHARACTERS) {
+      const key = ch.group || "teman";
+      let band = bands.find((b) => b.key === key);
+      if (!band) {
+        band = { key: key, items: [] };
+        bands.push(band);
+      }
+      band.items.push(ch);
+    }
+
+    bands.forEach((band) => {
+      const title = document.createElement("h3");
+      title.className = "group-title";
+      title.textContent = t("groupTitles")[band.key] || band.key;
+      grid.appendChild(title);
+      band.items.forEach((ch) => {
       const card = document.createElement("button");
-      card.className = "char-card";
+      // A scene is drawn on a wide canvas; give it a card the same shape.
+      const wide = (ch.width || BASE_W) > (ch.height || BASE_H);
+      card.className = "char-card" + (wide ? " wide" : "");
       card.type = "button";
       const preview = document.createElement("div");
       preview.className = "char-preview";
       const cv = document.createElement("canvas");
-      cv.width = 200;
-      cv.height = 250;
+      cv.width = wide ? 440 : 200;
+      cv.height = wide ? 250 : 250;
       preview.appendChild(cv);
       const span = document.createElement("span");
       span.textContent = (lang === "id" ? ch.nameId : ch.nameEn) + " " + ch.emoji;
@@ -937,6 +1072,7 @@
       card.addEventListener("click", () => startGame(ch.id));
       grid.appendChild(card);
       drawCharPreview(cv, ch);
+      });
     });
   }
 
@@ -944,9 +1080,11 @@
     const c = cv.getContext("2d");
     c.fillStyle = "#FFFEF8";
     c.fillRect(0, 0, cv.width, cv.height);
-    const sc = Math.min(cv.width / DESIGN_W, cv.height / DESIGN_H) * 0.92;
-    const ox = (cv.width - DESIGN_W * sc) / 2;
-    const oy = (cv.height - DESIGN_H * sc) / 2;
+    const w = ch.width || BASE_W;
+    const h = ch.height || BASE_H;
+    const sc = Math.min(cv.width / w, cv.height / h) * 0.92;
+    const ox = (cv.width - w * sc) / 2;
+    const oy = (cv.height - h * sc) / 2;
     c.save();
     c.translate(ox, oy);
     c.scale(sc, sc);
@@ -971,6 +1109,12 @@
 
   function startGame(charId) {
     character = window.GAMBOR_CHARACTERS.find((c) => c.id === charId);
+    designW = character.width || BASE_W;
+    designH = character.height || BASE_H;
+    // Grows with the scene so a line feels the same under the hand, but capped:
+    // past this the tolerance would swallow small props like a window whole,
+    // and one dab of the pen would finish them.
+    hitRadius = Math.min(HIT_RADIUS_BASE * (designW / BASE_W), 26);
     stepIndex = 0;
     strokeIndex = 0;
     mode = "trace";
@@ -1070,7 +1214,7 @@
 
   // Debug API for preview screenshots / QA (not shown in UI)
   window.__gambarDebug = {
-    getState: () => ({ mode, stepIndex, strokeIndex, lang, charId: character && character.id, coverage: coverageRatio(), accuracy: strokeAccuracy(), orderliness: traceOrderliness() }),
+    getState: () => ({ mode, stepIndex, strokeIndex, lang, charId: character && character.id, coverage: coverageRatio(), accuracy: strokeAccuracy(), orderliness: traceOrderliness(), orderMatters: orderMatters, travel: travelRatio(), hitRadius: hitRadius }),
     // Lets a test drive real pointer events along the guide the child sees.
     getSamples: () => samples.map((s) => ({ x: s.x, y: s.y })),
     designToClient: (x, y) => {
