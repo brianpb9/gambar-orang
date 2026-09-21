@@ -1,7 +1,7 @@
 /**
- * Gambar Orang — character path data (simplified geometry for TK kids)
- * Coordinates in design space 400×520. Steps reveal stroke groups in order.
- * fillRegions are closed paths for Warnai (bucket) mode.
+ * Gambar Orang — character path data matched to Brian's tutorial refs
+ * Design space 400×520. Absolute M/L/C/Q/Z only.
+ * Chibi: head ≈ body. Thick closed shapes (not stick lines). Dot/oval eyes.
  */
 window.GAMBOR_CHARACTERS = [
   {
@@ -9,41 +9,25 @@ window.GAMBOR_CHARACTERS = [
     nameId: "Cewek kuncir",
     nameEn: "Girl pigtails",
     emoji: "👧",
-    // 9 steps inspired by pigtail girl reference
     steps: [
       {
         id: "head",
         labelId: "Kepala",
         labelEn: "Head",
         paths: [
-          "M 200 95 C 155 95 120 130 120 180 C 120 230 155 265 200 265 C 245 265 280 230 280 180 C 280 130 245 95 200 95"
+          "M 282 168 C 282 214 245 252 200 252 C 155 252 118 214 118 168 C 118 122 155 84 200 84 C 245 84 282 122 282 168 Z"
         ]
       },
       {
-        id: "left-pigtail",
-        labelId: "Kuncir kiri",
-        labelEn: "Left pigtail",
+        id: "bangs-ears",
+        labelId: "Rambut & telinga",
+        labelEn: "Bangs & ears",
         paths: [
-          "M 125 145 C 90 130 70 155 75 185 C 80 210 100 220 120 210",
-          "M 95 175 C 85 185 88 205 100 200"
-        ]
-      },
-      {
-        id: "right-pigtail",
-        labelId: "Kuncir kanan",
-        labelEn: "Right pigtail",
-        paths: [
-          "M 275 145 C 310 130 330 155 325 185 C 320 210 300 220 280 210",
-          "M 305 175 C 315 185 312 205 300 200"
-        ]
-      },
-      {
-        id: "bangs",
-        labelId: "Rambut depan",
-        labelEn: "Bangs",
-        paths: [
-          "M 140 120 C 160 105 185 100 200 100 C 215 100 240 105 260 120",
-          "M 160 118 C 170 135 180 140 200 138 C 220 140 230 135 240 118"
+          // Zigzag bangs
+          "M 128 132 L 150 112 L 170 132 L 190 110 L 200 128 L 210 110 L 230 132 L 250 112 L 272 132",
+          // Ears
+          "M 118 158 Q 98 168 100 188 Q 102 204 120 198",
+          "M 282 158 Q 302 168 300 188 Q 298 204 280 198"
         ]
       },
       {
@@ -51,20 +35,36 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Wajah",
         labelEn: "Face",
         paths: [
-          "M 168 175 Q 175 168 182 175",
-          "M 218 175 Q 225 168 232 175",
-          "M 185 205 Q 200 218 215 205",
-          "M 155 195 Q 145 200 150 210",
-          "M 245 195 Q 255 200 250 210"
+          // Black DOT eyes (larger so thick stroke reads solid)
+          "M 180 176 C 180 183 174 188 168 188 C 162 188 156 183 156 176 C 156 169 162 164 168 164 C 174 164 180 169 180 176 Z",
+          "M 244 176 C 244 183 238 188 232 188 C 226 188 220 183 220 176 C 220 169 226 164 232 164 C 238 164 244 169 244 176 Z",
+          // Tiny lashes
+          "M 155 168 L 144 160",
+          "M 154 176 L 142 176",
+          "M 155 184 L 144 192",
+          "M 245 168 L 256 160",
+          "M 246 176 L 258 176",
+          "M 245 184 L 256 192",
+          // Smile
+          "M 170 206 Q 200 232 230 206"
         ]
       },
       {
-        id: "body",
-        labelId: "Badan / baju",
-        labelEn: "Body / dress",
+        id: "pigtails",
+        labelId: "Kuncir",
+        labelEn: "Pigtails",
         paths: [
-          "M 160 265 L 150 380 L 250 380 L 240 265",
-          "M 150 320 L 250 320"
+          // LARGE rounded teardrop blobs attached at sides
+          "M 120 125 C 85 95 30 115 28 170 C 26 225 70 255 118 242 C 135 235 138 195 135 160 C 133 140 128 130 120 125 Z",
+          "M 280 125 C 315 95 370 115 372 170 C 374 225 330 255 282 242 C 265 235 262 195 265 160 C 267 140 272 130 280 125 Z"
+        ]
+      },
+      {
+        id: "dress",
+        labelId: "Baju",
+        labelEn: "Dress",
+        paths: [
+          "M 160 252 L 132 390 L 268 390 L 240 252 Z"
         ]
       },
       {
@@ -72,10 +72,9 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Tangan",
         labelEn: "Arms",
         paths: [
-          "M 160 280 C 120 300 100 340 105 375",
-          "M 240 280 C 280 300 300 340 295 375",
-          "M 100 375 Q 105 385 115 380",
-          "M 300 375 Q 295 385 285 380"
+          // Short thick curved sausage arms (clearly closed fat shapes)
+          "M 155 265 C 110 270 78 310 82 360 C 84 385 115 395 138 370 C 148 350 155 310 168 272 Z",
+          "M 245 265 C 290 270 322 310 318 360 C 316 385 285 395 262 370 C 252 350 245 310 232 272 Z"
         ]
       },
       {
@@ -83,8 +82,9 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Kaki",
         labelEn: "Legs",
         paths: [
-          "M 175 380 L 170 450",
-          "M 225 380 L 230 450"
+          // Rounded pill legs
+          "M 145 390 L 145 455 C 145 478 175 485 195 455 L 195 390 Z",
+          "M 205 390 L 205 455 C 205 478 235 485 255 455 L 255 390 Z"
         ]
       },
       {
@@ -92,19 +92,68 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Sepatu",
         labelEn: "Shoes",
         paths: [
-          "M 155 450 Q 170 465 185 450",
-          "M 215 450 Q 230 465 245 450"
+          "M 143 448 L 197 448",
+          "M 203 448 L 257 448",
+          "M 200 462 C 200 476 175 484 170 484 C 165 484 140 476 140 462 C 140 450 165 444 170 444 C 175 444 200 450 200 462 Z",
+          "M 260 462 C 260 476 235 484 230 484 C 225 484 200 476 200 462 C 200 450 225 444 230 444 C 235 444 260 450 260 462 Z"
         ]
       }
     ],
     fillRegions: [
-      { id: "hair", labelId: "Rambut", labelEn: "Hair", path: "M 130 150 C 125 105 155 90 200 92 C 245 90 275 105 270 150 C 260 120 235 108 200 108 C 165 108 140 120 130 150 Z M 125 150 C 95 135 72 155 78 188 C 84 215 105 222 122 210 L 130 165 Z M 275 150 C 305 135 328 155 322 188 C 316 215 295 222 278 210 L 270 165 Z", defaultColor: "#E8A838" },
-      { id: "skin", labelId: "Kulit", labelEn: "Skin", path: "M 200 108 C 160 108 130 140 130 180 C 130 228 160 258 200 258 C 240 258 270 228 270 180 C 270 140 240 108 200 108 Z", defaultColor: "#F5C9A8" },
-      { id: "dress", labelId: "Baju", labelEn: "Dress", path: "M 160 265 L 150 380 L 250 380 L 240 265 Z", defaultColor: "#F48FB1" },
-      { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: "M 152 448 L 152 460 Q 170 472 188 460 L 188 448 Z M 212 448 L 212 460 Q 230 472 248 460 L 248 448 Z", defaultColor: "#C62828" }
+      {
+        id: "hair",
+        labelId: "Rambut",
+        labelEn: "Hair",
+        // Top-of-head above bangs (scalloped bottom) + both pigtails — no flat bar
+        path: "M 130 95 C 155 78 180 75 200 75 C 220 75 245 78 270 95 L 270 128 L 250 112 L 230 130 L 210 110 L 200 126 L 190 110 L 170 130 L 150 112 L 130 128 Z M 120 125 C 85 95 30 115 28 170 C 26 225 70 255 118 242 C 135 235 138 195 135 160 C 133 140 128 130 120 125 Z M 280 125 C 315 95 370 115 372 170 C 374 225 330 255 282 242 C 265 235 262 195 265 160 C 267 140 272 130 280 125 Z",
+        defaultColor: "#E8873A"
+      },
+      {
+        id: "skin",
+        labelId: "Kulit",
+        labelEn: "Skin",
+        path: "M 282 168 C 282 214 245 252 200 252 C 155 252 118 214 118 168 C 118 122 155 84 200 84 C 245 84 282 122 282 168 Z",
+        defaultColor: "#F5C9A8"
+      },
+      {
+        id: "arms",
+        labelId: "Lengan",
+        labelEn: "Arms",
+        path: "M 155 265 C 110 270 78 310 82 360 C 84 385 115 395 138 370 C 148 350 155 310 168 272 Z M 245 265 C 290 270 322 310 318 360 C 316 385 285 395 262 370 C 252 350 245 310 232 272 Z",
+        defaultColor: "#F5C9A8"
+      },
+      {
+        id: "legs",
+        labelId: "Kaki",
+        labelEn: "Legs",
+        path: "M 145 390 L 145 448 L 195 448 L 195 390 Z M 205 390 L 205 448 L 255 448 L 255 390 Z",
+        defaultColor: "#F5C9A8"
+      },
+      {
+        id: "eyes",
+        labelId: "Mata",
+        labelEn: "Eyes",
+        path: "M 180 176 C 180 183 174 188 168 188 C 162 188 156 183 156 176 C 156 169 162 164 168 164 C 174 164 180 169 180 176 Z M 244 176 C 244 183 238 188 232 188 C 226 188 220 183 220 176 C 220 169 226 164 232 164 C 238 164 244 169 244 176 Z",
+        defaultColor: "#212121"
+      },
+      {
+        id: "dress",
+        labelId: "Baju",
+        labelEn: "Dress",
+        path: "M 160 252 L 132 390 L 268 390 L 240 252 Z",
+        defaultColor: "#F48FB1"
+      },
+      {
+        id: "shoes",
+        labelId: "Sepatu",
+        labelEn: "Shoes",
+        path: "M 143 448 L 143 462 C 143 478 170 486 170 486 C 170 486 197 478 197 462 L 197 448 Z M 203 448 L 203 462 C 203 478 230 486 230 486 C 230 486 257 478 257 462 L 257 448 Z",
+        defaultColor: "#A0522D"
+      }
     ],
-    palette: ["#F5C9A8", "#E8A838", "#F48FB1", "#EF5350", "#42A5F5", "#8D6E63", "#FFFFFF", "#212121"]
+    palette: ["#F5C9A8", "#E8873A", "#F48FB1", "#A0522D", "#EF5350", "#42A5F5", "#FFFFFF", "#212121"]
   },
+
   {
     id: "cowok",
     nameId: "Cowok",
@@ -116,7 +165,7 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Kepala",
         labelEn: "Head",
         paths: [
-          "M 200 100 C 150 100 115 140 115 190 C 115 240 150 275 200 275 C 250 275 285 240 285 190 C 285 140 250 100 200 100"
+          "M 290 162 C 290 214 248 256 200 256 C 152 256 110 214 110 162 C 110 110 152 72 200 72 C 248 72 290 110 290 162 Z"
         ]
       },
       {
@@ -124,11 +173,9 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Rambut",
         labelEn: "Hair",
         paths: [
-          "M 120 160 C 125 110 160 90 200 88 C 240 90 275 110 280 160",
-          "M 140 130 C 155 115 180 108 200 108 C 220 108 245 115 260 130",
-          "M 165 115 L 170 95",
-          "M 200 108 L 200 90",
-          "M 235 115 L 240 95"
+          // Short bang curve across upper third down toward ears
+          "M 112 155 Q 200 100 288 155",
+          "M 122 120 Q 200 78 278 120"
         ]
       },
       {
@@ -136,8 +183,8 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Telinga",
         labelEn: "Ears",
         paths: [
-          "M 115 185 Q 100 185 102 205 Q 105 220 118 215",
-          "M 285 185 Q 300 185 298 205 Q 295 220 282 215"
+          "M 110 155 Q 88 165 90 190 Q 92 210 114 202",
+          "M 290 155 Q 312 165 310 190 Q 308 210 286 202"
         ]
       },
       {
@@ -145,18 +192,27 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Wajah",
         labelEn: "Face",
         paths: [
-          "M 165 180 Q 172 172 180 180",
-          "M 220 180 Q 227 172 235 180",
-          "M 185 215 Q 200 228 215 215"
+          // Vertical oval eyes
+          "M 184 172 C 184 184 176 194 166 194 C 156 194 148 184 148 172 C 148 160 156 150 166 150 C 176 150 184 160 184 172 Z",
+          "M 252 172 C 252 184 244 194 234 194 C 224 194 216 184 216 172 C 216 160 224 150 234 150 C 244 150 252 160 252 172 Z",
+          // Pupils
+          "M 176 176 C 176 181 172 185 168 185 C 164 185 160 181 160 176 C 160 171 164 167 168 167 C 172 167 176 171 176 176 Z",
+          "M 244 176 C 244 181 240 185 236 185 C 232 185 228 181 228 176 C 228 171 232 167 236 167 C 240 167 244 171 244 176 Z",
+          // Eyebrows
+          "M 148 142 Q 166 134 182 142",
+          "M 218 142 Q 236 134 252 142",
+          // Tiny V nose
+          "M 194 198 L 200 208 L 206 198",
+          // Smile
+          "M 168 220 Q 200 244 232 220"
         ]
       },
       {
-        id: "body",
+        id: "shirt",
         labelId: "Baju",
         labelEn: "Shirt",
         paths: [
-          "M 155 275 L 145 365 L 255 365 L 245 275",
-          "M 200 275 L 200 365"
+          "M 152 256 C 135 265 126 295 124 325 L 124 352 Q 200 372 276 352 L 276 325 C 274 295 265 265 248 256 Z"
         ]
       },
       {
@@ -164,20 +220,21 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Tangan",
         labelEn: "Arms",
         paths: [
-          "M 155 290 C 115 310 95 350 100 385",
-          "M 245 290 C 285 310 305 350 300 385",
-          "M 95 385 Q 100 395 110 390",
-          "M 305 385 Q 300 395 290 390"
+          // Thick sausage arms + mitten hands
+          "M 142 275 C 95 288 70 335 75 380 C 78 398 105 405 128 385 C 140 365 148 325 158 295 Z",
+          "M 78 382 C 58 375 50 395 58 412 C 68 435 105 440 128 418 C 138 405 130 388 115 385 Z",
+          "M 258 275 C 305 288 330 335 325 380 C 322 398 295 405 272 385 C 260 365 252 325 242 295 Z",
+          "M 322 382 C 342 375 350 395 342 412 C 332 435 295 440 272 418 C 262 405 270 388 285 385 Z"
         ]
       },
       {
-        id: "legs",
-        labelId: "Celana & kaki",
-        labelEn: "Pants & legs",
+        id: "pants",
+        labelId: "Celana",
+        labelEn: "Pants",
         paths: [
-          "M 160 365 L 155 430",
-          "M 240 365 L 245 430",
-          "M 145 365 L 255 365"
+          "M 135 352 L 135 435 L 188 435 L 188 352 Z",
+          "M 212 352 L 212 435 L 265 435 L 265 352 Z",
+          "M 135 352 L 265 352"
         ]
       },
       {
@@ -185,20 +242,65 @@ window.GAMBOR_CHARACTERS = [
         labelId: "Sepatu",
         labelEn: "Shoes",
         paths: [
-          "M 140 430 Q 155 448 175 430",
-          "M 225 430 Q 240 448 260 430"
+          "M 195 442 C 195 454 175 464 155 464 C 135 464 118 454 118 442 C 118 430 135 424 155 424 C 175 424 195 430 195 442 Z",
+          "M 282 442 C 282 454 262 464 242 464 C 222 464 205 454 205 442 C 205 430 222 424 242 424 C 262 424 282 430 282 442 Z"
         ]
       }
     ],
     fillRegions: [
-      { id: "hair", labelId: "Rambut", labelEn: "Hair", path: "M 120 160 C 125 100 160 85 200 85 C 240 85 275 100 280 160 C 270 125 240 105 200 105 C 160 105 130 125 120 160 Z", defaultColor: "#5D4037" },
-      { id: "skin", labelId: "Kulit", labelEn: "Skin", path: "M 200 105 C 155 105 120 145 120 190 C 120 240 155 270 200 270 C 245 270 280 240 280 190 C 280 145 245 105 200 105 Z", defaultColor: "#F5C9A8" },
-      { id: "shirt", labelId: "Baju", labelEn: "Shirt", path: "M 155 275 L 145 365 L 255 365 L 245 275 Z", defaultColor: "#42A5F5" },
-      { id: "pants", labelId: "Celana", labelEn: "Pants", path: "M 160 365 L 155 428 L 175 428 L 180 365 Z M 240 365 L 245 428 L 225 428 L 220 365 Z", defaultColor: "#1565C0" },
-      { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: "M 140 428 L 140 438 Q 155 452 175 438 L 175 428 Z M 225 428 L 225 438 Q 240 452 260 438 L 260 428 Z", defaultColor: "#EF5350" }
+      {
+        id: "hair",
+        labelId: "Rambut",
+        labelEn: "Hair",
+        path: "M 112 155 Q 200 100 288 155 C 285 115 250 70 200 68 C 150 70 115 115 112 155 Z",
+        defaultColor: "#6D4C41"
+      },
+      {
+        id: "skin",
+        labelId: "Kulit",
+        labelEn: "Skin",
+        path: "M 290 162 C 290 214 248 256 200 256 C 152 256 110 214 110 162 C 110 110 152 72 200 72 C 248 72 290 110 290 162 Z",
+        defaultColor: "#F5C9A8"
+      },
+      {
+        id: "arms",
+        labelId: "Lengan",
+        labelEn: "Arms",
+        path: "M 142 275 C 95 288 70 335 75 380 C 78 398 105 405 128 385 C 140 365 148 325 158 295 Z M 78 382 C 58 375 50 395 58 412 C 68 435 105 440 128 418 C 138 405 130 388 115 385 Z M 258 275 C 305 288 330 335 325 380 C 322 398 295 405 272 385 C 260 365 252 325 242 295 Z M 322 382 C 342 375 350 395 342 412 C 332 435 295 440 272 418 C 262 405 270 388 285 385 Z",
+        defaultColor: "#F5C9A8"
+      },
+      {
+        id: "eyes",
+        labelId: "Mata",
+        labelEn: "Eyes",
+        path: "M 176 176 C 176 181 172 185 168 185 C 164 185 160 181 160 176 C 160 171 164 167 168 167 C 172 167 176 171 176 176 Z M 244 176 C 244 181 240 185 236 185 C 232 185 228 181 228 176 C 228 171 232 167 236 167 C 240 167 244 171 244 176 Z",
+        defaultColor: "#212121"
+      },
+      {
+        id: "shirt",
+        labelId: "Baju",
+        labelEn: "Shirt",
+        path: "M 152 256 C 135 265 126 295 124 325 L 124 352 Q 200 372 276 352 L 276 325 C 274 295 265 265 248 256 Z",
+        defaultColor: "#E53935"
+      },
+      {
+        id: "pants",
+        labelId: "Celana",
+        labelEn: "Pants",
+        path: "M 135 352 L 135 435 L 188 435 L 188 352 Z M 212 352 L 212 435 L 265 435 L 265 352 Z",
+        defaultColor: "#1E88E5"
+      },
+      {
+        id: "shoes",
+        labelId: "Sepatu",
+        labelEn: "Shoes",
+        path: "M 195 442 C 195 454 175 464 155 464 C 135 464 118 454 118 442 C 118 430 135 424 155 424 C 175 424 195 430 195 442 Z M 282 442 C 282 454 262 464 242 464 C 222 464 205 454 205 442 C 205 430 222 424 242 424 C 262 424 282 430 282 442 Z",
+        defaultColor: "#37474F"
+      }
     ],
-    palette: ["#F5C9A8", "#5D4037", "#42A5F5", "#1565C0", "#EF5350", "#E8A838", "#FFFFFF", "#212121"]
+    palette: ["#F5C9A8", "#6D4C41", "#E53935", "#1E88E5", "#37474F", "#EF5350", "#FFFFFF", "#212121"]
   },
+
   {
     id: "cewek-topi",
     nameId: "Cewek topi",
@@ -206,76 +308,151 @@ window.GAMBOR_CHARACTERS = [
     emoji: "👒",
     steps: [
       {
-        id: "hat",
-        labelId: "Topi",
-        labelEn: "Hat",
+        id: "hat-head",
+        labelId: "Topi & kepala",
+        labelEn: "Hat & head",
         paths: [
-          "M 110 145 Q 200 80 290 145",
-          "M 110 145 Q 200 165 290 145",
-          "M 155 120 Q 200 95 245 120"
+          "M 278 192 C 278 236 243 272 200 272 C 157 272 122 236 122 192 C 122 148 157 114 200 114 C 243 114 278 148 278 192 Z",
+          // Bucket hat dome
+          "M 148 118 C 148 68 252 68 252 118",
+          // Wide brim
+          "M 95 122 Q 200 152 305 122 Q 200 100 95 122 Z",
+          // Circle eyes
+          "M 184 198 C 184 206 178 212 170 212 C 162 212 156 206 156 198 C 156 190 162 184 170 184 C 178 184 184 190 184 198 Z",
+          "M 244 198 C 244 206 238 212 230 212 C 222 212 216 206 216 198 C 216 190 222 184 230 184 C 238 184 244 190 244 198 Z"
         ]
       },
       {
-        id: "head",
-        labelId: "Kepala",
-        labelEn: "Head",
+        id: "body",
+        labelId: "Badan",
+        labelEn: "Body",
         paths: [
-          "M 200 145 C 155 145 125 175 125 215 C 125 260 155 290 200 290 C 245 290 275 260 275 215 C 275 175 245 145 200 145"
+          "M 152 272 C 140 295 136 335 138 368 L 262 368 C 264 335 260 295 248 272 Z",
+          "M 188 228 L 212 228"
         ]
+      },
+      {
+        id: "hair-legs",
+        labelId: "Rambut & kaki",
+        labelEn: "Hair & legs",
+        paths: [
+          // Wavy brown hair under hat
+          "M 122 170 C 100 195 95 250 110 285 C 118 300 142 295 148 270 C 152 240 142 195 135 175 Z",
+          "M 278 170 C 300 195 305 250 290 285 C 282 300 258 295 252 270 C 248 240 258 195 265 175 Z",
+          "M 108 215 Q 92 235 108 255",
+          "M 292 215 Q 308 235 292 255",
+          // Smile
+          "M 172 226 Q 200 250 228 226",
+          // Thick pill legs
+          "M 148 368 L 148 442 C 148 465 180 472 198 442 L 198 368 Z",
+          "M 202 368 L 202 442 C 202 465 234 472 252 442 L 252 368 Z"
+        ]
+      },
+      {
+        id: "clothes",
+        labelId: "Baju & sepatu",
+        labelEn: "Clothes & shoes",
+        paths: [
+          // Tank collar
+          "M 165 272 Q 200 290 235 272",
+          // Tank hem / shorts top
+          "M 140 328 L 260 328",
+          // Shorts bottom
+          "M 140 368 L 260 368",
+          "M 200 328 L 200 368",
+          // Thick sausage arms
+          "M 145 285 C 105 295 85 340 90 385 C 92 405 120 412 140 388 C 150 365 155 325 162 295 Z",
+          "M 255 285 C 295 295 315 340 310 385 C 308 405 280 412 260 388 C 250 365 245 325 238 295 Z",
+          // Pink shoes
+          "M 198 450 C 198 462 178 470 168 470 C 158 470 140 462 140 450 C 140 438 158 432 168 432 C 178 432 198 438 198 450 Z",
+          "M 260 450 C 260 462 240 470 230 470 C 220 470 202 462 202 450 C 202 438 220 432 230 432 C 240 432 260 438 260 450 Z"
+        ]
+      },
+      {
+        id: "details",
+        labelId: "Hati & mata",
+        labelEn: "Heart & eyes",
+        paths: [
+          "M 200 305 C 188 292 170 296 170 312 C 170 324 200 342 200 342 C 200 342 230 324 230 312 C 230 296 212 292 200 305 Z",
+          // Pupils (white highlight dots as small open circles on black eyes — black filled via fillRegions)
+          "M 176 196 C 176 199 174 201 172 201 C 170 201 168 199 168 196 C 168 193 170 191 172 191 C 174 191 176 193 176 196 Z",
+          "M 236 196 C 236 199 234 201 232 201 C 230 201 228 199 228 196 C 228 193 230 191 232 191 C 234 191 236 193 236 196 Z",
+          "M 148 116 Q 200 128 252 116"
+        ]
+      }
+    ],
+    fillRegions: [
+      {
+        id: "hat",
+        labelId: "Topi",
+        labelEn: "Hat",
+        path: "M 148 118 C 148 68 252 68 252 118 L 252 122 Q 200 102 148 122 Z M 95 122 Q 200 152 305 122 Q 200 100 95 122 Z",
+        defaultColor: "#EC407A"
       },
       {
         id: "hair",
         labelId: "Rambut",
         labelEn: "Hair",
-        paths: [
-          "M 125 200 C 115 230 118 270 130 295",
-          "M 275 200 C 285 230 282 270 270 295",
-          "M 140 155 C 160 148 185 145 200 145 C 215 145 240 148 260 155"
-        ]
+        path: "M 122 170 C 100 195 95 250 110 285 C 118 300 142 295 148 270 C 152 240 142 195 135 175 Z M 278 170 C 300 195 305 250 290 285 C 282 300 258 295 252 270 C 248 240 258 195 265 175 Z",
+        defaultColor: "#8D6E63"
       },
       {
-        id: "face",
-        labelId: "Wajah",
-        labelEn: "Face",
-        paths: [
-          "M 168 210 Q 175 202 182 210",
-          "M 218 210 Q 225 202 232 210",
-          "M 188 240 Q 200 252 212 240",
-          "M 150 230 Q 140 235 145 245",
-          "M 250 230 Q 260 235 255 245"
-        ]
+        id: "skin",
+        labelId: "Kulit",
+        labelEn: "Skin",
+        path: "M 278 192 C 278 236 243 272 200 272 C 157 272 122 236 122 192 C 122 148 157 114 200 114 C 243 114 278 148 278 192 Z",
+        defaultColor: "#F5C9A8"
       },
       {
-        id: "body-arms",
-        labelId: "Baju & tangan",
-        labelEn: "Dress & arms",
-        paths: [
-          "M 165 290 L 145 400 L 255 400 L 235 290",
-          "M 165 310 C 125 330 105 365 110 395",
-          "M 235 310 C 275 330 295 365 290 395",
-          "M 105 395 Q 110 405 120 400",
-          "M 295 395 Q 290 405 280 400"
-        ]
+        id: "arms",
+        labelId: "Lengan",
+        labelEn: "Arms",
+        path: "M 145 285 C 105 295 85 340 90 385 C 92 405 120 412 140 388 C 150 365 155 325 162 295 Z M 255 285 C 295 295 315 340 310 385 C 308 405 280 412 260 388 C 250 365 245 325 238 295 Z",
+        defaultColor: "#F5C9A8"
       },
       {
-        id: "legs-shoes",
-        labelId: "Kaki & sepatu",
-        labelEn: "Legs & shoes",
-        paths: [
-          "M 175 400 L 170 465",
-          "M 225 400 L 230 465",
-          "M 155 465 Q 170 480 185 465",
-          "M 215 465 Q 230 480 245 465"
-        ]
+        id: "legs",
+        labelId: "Kaki",
+        labelEn: "Legs",
+        path: "M 148 368 L 148 442 L 198 442 L 198 368 Z M 202 368 L 202 442 L 252 442 L 252 368 Z",
+        defaultColor: "#F5C9A8"
+      },
+      {
+        id: "eyes",
+        labelId: "Mata",
+        labelEn: "Eyes",
+        path: "M 184 198 C 184 206 178 212 170 212 C 162 212 156 206 156 198 C 156 190 162 184 170 184 C 178 184 184 190 184 198 Z M 244 198 C 244 206 238 212 230 212 C 222 212 216 206 216 198 C 216 190 222 184 230 184 C 238 184 244 190 244 198 Z",
+        defaultColor: "#212121"
+      },
+      {
+        id: "tank",
+        labelId: "Baju",
+        labelEn: "Tank",
+        path: "M 152 272 C 140 295 138 310 138 328 L 262 328 C 262 310 260 295 248 272 Q 200 290 152 272 Z",
+        defaultColor: "#FFEB3B"
+      },
+      {
+        id: "heart",
+        labelId: "Hati",
+        labelEn: "Heart",
+        path: "M 200 305 C 188 292 170 296 170 312 C 170 324 200 342 200 342 C 200 342 230 324 230 312 C 230 296 212 292 200 305 Z",
+        defaultColor: "#EC407A"
+      },
+      {
+        id: "shorts",
+        labelId: "Celana",
+        labelEn: "Shorts",
+        path: "M 138 328 L 138 368 L 262 368 L 262 328 Z",
+        defaultColor: "#F48FB1"
+      },
+      {
+        id: "shoes",
+        labelId: "Sepatu",
+        labelEn: "Shoes",
+        path: "M 198 450 C 198 462 178 470 168 470 C 158 470 140 462 140 450 C 140 438 158 432 168 432 C 178 432 198 438 198 450 Z M 260 450 C 260 462 240 470 230 470 C 220 470 202 462 202 450 C 202 438 220 432 230 432 C 240 432 260 438 260 450 Z",
+        defaultColor: "#EC407A"
       }
     ],
-    fillRegions: [
-      { id: "hat", labelId: "Topi", labelEn: "Hat", path: "M 110 145 Q 200 80 290 145 Q 200 165 110 145 Z", defaultColor: "#EF5350" },
-      { id: "hair", labelId: "Rambut", labelEn: "Hair", path: "M 125 200 C 115 230 118 280 130 300 L 145 290 C 135 260 130 220 140 190 Z M 275 200 C 285 230 282 280 270 300 L 255 290 C 265 260 270 220 260 190 Z", defaultColor: "#E8A838" },
-      { id: "skin", labelId: "Kulit", labelEn: "Skin", path: "M 200 150 C 160 150 130 180 130 215 C 130 255 160 285 200 285 C 240 285 270 255 270 215 C 270 180 240 150 200 150 Z", defaultColor: "#F5C9A8" },
-      { id: "dress", labelId: "Baju", labelEn: "Dress", path: "M 165 290 L 145 400 L 255 400 L 235 290 Z", defaultColor: "#F48FB1" },
-      { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: "M 155 463 L 155 473 Q 170 485 185 473 L 185 463 Z M 215 463 L 215 473 Q 230 485 245 473 L 245 463 Z", defaultColor: "#8D6E63" }
-    ],
-    palette: ["#F5C9A8", "#E8A838", "#F48FB1", "#EF5350", "#42A5F5", "#8D6E63", "#FFFFFF", "#212121"]
+    palette: ["#F5C9A8", "#8D6E63", "#EC407A", "#FFEB3B", "#F48FB1", "#42A5F5", "#FFFFFF", "#212121"]
   }
 ];

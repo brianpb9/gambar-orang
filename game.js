@@ -393,12 +393,12 @@
 
       // Completed outline paths (black)
       for (const d of completedOutlines) {
-        strokePath(d, { strokeStyle: "#2C2416", lineWidth: 5 });
+        strokePath(d, { strokeStyle: "#2C2416", lineWidth: 7 });
       }
 
       // Past kid strokes (faded under outlines look)
       for (const stroke of kidStrokes) {
-        drawKidStroke(stroke, "rgba(232,122,58,0.35)", 6);
+        drawKidStroke(stroke, "rgba(232,122,58,0.35)", 8);
       }
 
       if (mode === "trace" && character) {
@@ -407,7 +407,7 @@
         for (const d of step.paths) {
           strokePath(d, {
             strokeStyle: "rgba(91,184,176,0.45)",
-            lineWidth: 14,
+            lineWidth: 18,
             dash: [],
           });
           strokePath(d, {
@@ -428,7 +428,7 @@
         }
         // Current stroke
         if (currentStroke) {
-          drawKidStroke(currentStroke, "#E87A3A", 7);
+          drawKidStroke(currentStroke, "#E87A3A", 9);
         }
       }
 
@@ -442,7 +442,7 @@
       // Always draw full completed black outline on top in color/done
       if (mode === "color" || mode === "done") {
         for (const d of completedOutlines) {
-          strokePath(d, { strokeStyle: "#2C2416", lineWidth: 4.5 });
+          strokePath(d, { strokeStyle: "#2C2416", lineWidth: 6.5 });
         }
       }
     });
@@ -743,7 +743,7 @@
     c.lineCap = "round";
     c.lineJoin = "round";
     c.strokeStyle = "#2C2416";
-    c.lineWidth = 4;
+    c.lineWidth = 6;
     for (const step of ch.steps) {
       for (const d of step.paths) {
         c.stroke(makePath2D(d));

@@ -27,9 +27,9 @@ You can also open `index.html` via Files app if Safari allows local file access;
 
 ## Characters & steps
 
-1. **Cewek kuncir** (9): Kepala → Kuncir kiri → Kuncir kanan → Rambut depan → Wajah → Badan/baju → Tangan → Kaki → Sepatu  
-2. **Cowok** (8): Kepala → Rambut → Telinga → Wajah → Baju → Tangan → Celana & kaki → Sepatu  
-3. **Cewek topi** (6): Topi → Kepala → Rambut → Wajah → Baju & tangan → Kaki & sepatu  
+1. **Cewek kuncir** (8): Kepala → Rambut & telinga → Wajah (dot eyes) → Kuncir besar → Baju trapezoid → Tangan sosis → Kaki pill → Sepatu  
+2. **Cowok** (8): Kepala → Rambut → Telinga → Wajah (oval + pupil) → Baju merah → Tangan mitten → Celana biru → Sepatu gelap  
+3. **Cewek topi** (5): Topi & kepala → Badan → Rambut & kaki → Baju/sepatu → Hati & mata  
 
 **Flow:** Trace all steps (≥72% guide coverage, generous hit radius) → **Warnai** (tap region + palette) → **Hebat!** card.
 
