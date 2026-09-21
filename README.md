@@ -25,7 +25,7 @@ You can also open `index.html` via Files app if Safari allows local file access;
 | `manifest.webmanifest` | Standalone theme |
 | `preview/` | Screenshots |
 
-111 cards in all, 645 guided lines.
+111 cards in all, 545 guided lines.
 
 ## Pictures
 
@@ -58,9 +58,10 @@ strokes a child is taught to write it with, in order and in the direction the
 pen travels: 4 is "slant then across" and then the downstroke, 5 is "down then
 belly" and then the top bar last. A digit is a step, so 47 is walked through as
 *Angka 4* then *Angka 7* rather than handed over whole. These are skeletons,
-not outlines — what is being practised is the path of the pen. The board behind
-the number is traced last and is what gets coloured; the numeral stays a pen
-line, which is what it is.
+not outlines — what is being practised is the path of the pen, so only the
+numeral is traced. The board behind it is not: drawing a rectangle teaches
+nothing and stood between the child and finishing each of the hundred cards.
+It is there to colour once the number is written.
 
 A card is 200 units wide per digit, so the tolerance (which follows the canvas)
 keeps a 1 and a 100 feeling the same under the hand.

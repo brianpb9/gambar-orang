@@ -757,9 +757,8 @@
 
   /**
    * One number to trace: each digit is its own step, so a child is walked
-   * through "4" and then "7" rather than being handed "47" whole. The board
-   * behind it is traced last and is the part that gets coloured — the numeral
-   * itself stays a pen line, which is what it is.
+   * through "4" and then "7" rather than being handed "47" whole. Only the
+   * numeral is traced; the board behind it is there to colour afterwards.
    */
   function numberCard(n) {
     const text = String(n);
@@ -783,13 +782,10 @@
       });
     }
 
+    // The board is not traced: drawing a rectangle teaches nothing, and it
+    // stood between the child and finishing every one of these hundred cards.
+    // It is still there to colour once the number is written.
     const board = roundRect(14, 12, width - 28, height - 24, 34);
-    steps.push({
-      id: "board",
-      labelId: "Papan angka",
-      labelEn: "Number board",
-      paths: [pl(board, "Bingkai", "Frame")],
-    });
 
     return {
       group: "angka" + band,
