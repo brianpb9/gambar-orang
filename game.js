@@ -118,6 +118,7 @@
   let lastPenPt = null;
   let orderMatters = false; // false on shapes too small to sweep along
   let lastPenAt = 0;
+  let colourTimer = null;
   let audioCtx = null;
   let reducedMotion = false;
 
@@ -139,10 +140,9 @@
       if (I18N[lang][key] !== undefined) el.textContent = t(key);
     });
     $("#lang-toggle").textContent = t("langBtn");
-    if (character) {
-      updateStepUI();
-      renderCharCards();
-    }
+    if (character) updateStepUI();
+    // The grid is 111 cards; only rebuild it when it is the screen in view.
+    if ($("#screen-pick").classList.contains("active")) renderCharCards();
   }
 
   /* —— Screens —— */
@@ -750,8 +750,11 @@
       sfxCheer();
       mode = "color-pending";
       draw();
-      setTimeout(() => {
-        enterColorMode();
+      // A beat to admire the finished drawing before the palette appears. If
+      // they leave or start another card first, this must not land on it.
+      colourTimer = setTimeout(() => {
+        colourTimer = null;
+        if (mode === "color-pending") enterColorMode();
       }, reducedMotion ? 200 : 700);
       return;
     }
@@ -881,7 +884,11 @@
       return;
     }
 
-    if (drawing) return; // a second finger must not hijack the stroke
+    if (drawing) {
+      // A second finger must not hijack the stroke, nor hold a capture.
+      try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+      return;
+    }
     drawing = true;
     activePointerId = e.pointerId;
     resetStrokeStats();
@@ -1121,6 +1128,8 @@
   }
 
   function startGame(charId) {
+    clearTimeout(colourTimer);
+    colourTimer = null;
     character = window.GAMBOR_CHARACTERS.find((c) => c.id === charId);
     designW = character.width || BASE_W;
     designH = character.height || BASE_H;
