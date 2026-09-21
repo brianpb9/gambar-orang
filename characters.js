@@ -103,9 +103,10 @@
   // The head is traced as four separate lines — chin first, the way the paper
   // tutorials teach it — but filled as one silhouette.
   const HEAD_CHIN =
-    "M 119 179 C 129 199 155 213 184 216 " +
-    "L 182 230 C 186 242 214 242 218 230 L 220 216 " +
-    "C 246 213 271 199 281 179";
+    "M 119 179 C 129 200 158 216 200 216 " +
+    "C 242 216 271 200 281 179";
+  // Drawn with the clothes, not with the face.
+  const NECK = "M 182 214 L 182 230 M 218 214 L 218 230";
   const HEAD_CROWN =
     "M 114 147 C 113 142 112 138 112 132 " +
     "C 112 85.6 151.4 48 200 48 " +
@@ -271,6 +272,7 @@
       labelId: labelId,
       labelEn: labelEn,
       paths: [
+        pl(NECK, "Leher", "Neck"),
         pl(SLEEVE_L, "Lengan baju kiri", "Left sleeve"),
         pl(SLEEVE_R, "Lengan baju kanan", "Right sleeve"),
         pl(SHIRT_SIDE_L, "Sisi kiri", "Left side"),
@@ -507,6 +509,7 @@
       labelId: labelId,
       labelEn: labelEn,
       paths: [
+        pl(NECK, "Leher", "Neck"),
         pl(SLEEVE_L, "Lengan gaun kiri", "Left sleeve"),
         pl(SLEEVE_R, "Lengan gaun kanan", "Right sleeve"),
         pl(DRESS_SIDE_L, "Sisi kiri", "Left side"),
@@ -714,7 +717,7 @@
     ],
     "6": [["Lengkung lalu gelung", "Curve then loop", "M 138 42 C 96 28 50 82 46 160 C 43 222 68 268 104 268 C 140 268 158 238 156 206 C 154 174 126 152 98 156 C 76 159 56 176 48 196"]],
     "7": [["Datar lalu miring", "Across then slant", "M 44 40 L 158 40 L 82 268"]],
-    "8": [["Angka delapan", "Figure eight", "M 100 32 C 62 32 52 76 78 100 C 104 124 158 132 158 196 C 158 248 132 268 100 268 C 68 268 42 248 42 196 C 42 132 96 124 122 100 C 148 76 138 32 100 32 Z"]],
+    "8": [["Angka delapan", "Figure eight", "M 100 34 C 60 34 48 76 76 120 C 104 152 158 162 158 204 C 158 246 132 268 100 268 C 68 268 42 246 42 204 C 42 162 96 152 124 120 C 152 76 140 34 100 34 Z"]],
     "9": [["Gelung lalu turun", "Loop then down", "M 156 118 C 156 84 132 58 100 58 C 68 58 46 84 46 118 C 46 152 68 176 100 176 C 130 176 152 156 156 124 C 156 180 154 230 148 268"]],
   };
 
@@ -918,6 +921,7 @@
           labelId: "Gaun",
           labelEn: "Dress",
           paths: [
+            pl(NECK, "Leher", "Neck"),
             pl(SLEEVE_L, "Lengan gaun kiri", "Left sleeve"),
             pl(SLEEVE_R, "Lengan gaun kanan", "Right sleeve"),
             pl(DRESS_SIDE_L, "Sisi kiri", "Left side"),

@@ -25,7 +25,7 @@ You can also open `index.html` via Files app if Safari allows local file access;
 | `manifest.webmanifest` | Standalone theme |
 | `preview/` | Screenshots |
 
-111 cards in all, 529 guided lines.
+111 cards in all, 537 guided lines.
 
 ## Pictures
 
@@ -81,7 +81,9 @@ the same under the hand, capped so it cannot swallow a small prop whole.
 **One line at a time.** A step is never handed over as a bundle of shapes. Each
 step is split into single pen movements and the game guides them in order, so
 the head goes *Dagu → Atas kepala → Telinga kiri → Telinga kanan* and the face
-goes *Mata kiri → Mata kanan → Senyum → Pipi kiri → Pipi kanan*. Only the line
+goes *Mata kiri → Mata kanan → Senyum*. The chin is a plain U and the neck is
+drawn later with the clothes: a child builds the face first, and a chin that
+already had a neck hanging off it was confusing. Only the line
 being drawn is highlighted; the rest of the step sits behind it as a faint
 preview, and an orange dot marks where to put the pen down. The header shows
 `Langkah 3/6` plus `garis 1/4` and the name of the line. Roughly 24-29 guided
