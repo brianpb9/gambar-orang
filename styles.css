@@ -175,10 +175,10 @@ h1 {
 .char-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
   gap: clamp(12px, 2vw, 24px);
   align-content: center;
-  max-width: 900px;
+  max-width: 720px;
   margin: 0 auto;
   width: 100%;
   padding: 8px;
@@ -186,9 +186,15 @@ h1 {
 
 @media (max-width: 700px), (orientation: portrait) {
   .char-grid {
-    grid-template-columns: 1fr;
-    max-width: 360px;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    max-width: 520px;
     overflow-y: auto;
+  }
+}
+@media (max-width: 420px) {
+  .char-grid {
+    grid-template-columns: 1fr;
+    max-width: 300px;
   }
 }
 

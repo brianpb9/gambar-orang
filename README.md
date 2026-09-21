@@ -20,16 +20,19 @@ You can also open `index.html` via Files app if Safari allows local file access;
 |------|------|
 | `index.html` | Shell + PWA meta |
 | `styles.css` | Tablet-first UI |
-| `characters.js` | 3 characters, step paths, fill regions, palettes |
+| `characters.js` | 4 soft kawaii characters, step paths, fill regions, palettes |
 | `game.js` | Trace coverage, pointer/stylus, color fill, i18n, audio |
 | `manifest.webmanifest` | Standalone theme |
 | `preview/` | Screenshots |
 
 ## Characters & steps
 
-1. **Cewek kuncir** (8): Kepala → Rambut & telinga → Wajah (dot eyes) → Kuncir besar → Baju trapezoid → Tangan sosis → Kaki pill → Sepatu  
-2. **Cowok** (8): Kepala → Rambut → Telinga → Wajah (oval + pupil) → Baju merah → Tangan mitten → Celana biru → Sepatu gelap  
-3. **Cewek topi** (5): Topi & kepala → Badan → Rambut & kaki → Baju/sepatu → Hati & mata  
+Soft organic kawaii/chibi (Brian correction #2) — big sparkly eyes, scalloped hems, sausage limbs:
+
+1. **Cewek ekor** — light-brown high ponytail + yellow band, yellow wavy-hem tee, blue pants, grey shoes, blush  
+2. **Cowok** — dark soft-spike hair, green tee, dark-blue shorts, brown shoes  
+3. **Cewek pita** — dark bob + blunt bangs + pink side bow, light-pink scalloped dress, dark-pink shoes  
+4. **Cewek overall** — brown side buns, yellow tee + blue overalls  
 
 **Flow:** Trace all steps (≥72% guide coverage, generous hit radius) → **Warnai** (tap region + palette) → **Hebat!** card.
 

@@ -1,2 +1,3 @@
-preview/
 .DS_Store
+refs/
+_render_preview.py

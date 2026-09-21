@@ -393,7 +393,7 @@
 
       // Completed outline paths (black)
       for (const d of completedOutlines) {
-        strokePath(d, { strokeStyle: "#2C2416", lineWidth: 7 });
+        strokePath(d, { strokeStyle: "#2C2416", lineWidth: 7.5 });
       }
 
       // Past kid strokes (faded under outlines look)
@@ -442,7 +442,7 @@
       // Always draw full completed black outline on top in color/done
       if (mode === "color" || mode === "done") {
         for (const d of completedOutlines) {
-          strokePath(d, { strokeStyle: "#2C2416", lineWidth: 6.5 });
+          strokePath(d, { strokeStyle: "#2C2416", lineWidth: 7 });
         }
       }
     });
@@ -743,7 +743,7 @@
     c.lineCap = "round";
     c.lineJoin = "round";
     c.strokeStyle = "#2C2416";
-    c.lineWidth = 6;
+    c.lineWidth = 7;
     for (const step of ch.steps) {
       for (const d of step.paths) {
         c.stroke(makePath2D(d));
