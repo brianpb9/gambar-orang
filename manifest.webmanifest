@@ -1,0 +1,11 @@
+{
+  "name": "Gambar Orang",
+  "short_name": "Gambar Orang",
+  "description": "Gambar orang langkah demi langkah untuk anak TK",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FBF6EB",
+  "theme_color": "#FBF6EB",
+  "orientation": "any",
+  "lang": "id"
+}
