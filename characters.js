@@ -135,9 +135,6 @@
   const SHINE_L = ell(161, 142, 6.5, 6.5);
   const SHINE_R = ell(227, 142, 6.5, 6.5);
   const MOUTH = "M 186 178 Q 200 191 214 178";
-  // Cheeks sit below the eyes and inside the jaw, never touching either.
-  const BLUSH_L = ell(153, 185, 12.5, 7.5);
-  const BLUSH_R = mir(BLUSH_L);
 
   // Eyes with the highlight punched out (evenodd) so the white shows through.
   const EYES_FILL = EYE_L + " " + EYE_R + " " + SHINE_L + " " + SHINE_R;
@@ -252,8 +249,6 @@
         pl(EYE_L, "Mata kiri", "Left eye"),
         pl(EYE_R, "Mata kanan", "Right eye"),
         pl(MOUTH, "Senyum", "Smile"),
-        pl(BLUSH_L, "Pipi kiri", "Left cheek"),
-        pl(BLUSH_R, "Pipi kanan", "Right cheek"),
       ],
     };
   }
@@ -304,7 +299,6 @@
     return [
       { id: "shine", labelId: "Kilau mata", labelEn: "Eye shine", path: SHINE_FILL, defaultColor: "#FFFFFF" },
       { id: "eyes", labelId: "Mata", labelEn: "Eyes", path: EYES_FILL, defaultColor: "#3B2A20" },
-      { id: "blush", labelId: "Pipi", labelEn: "Cheeks", path: BLUSH_L + " " + BLUSH_R, defaultColor: "#F7A8A0" },
     ];
   }
 

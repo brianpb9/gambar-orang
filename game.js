@@ -56,8 +56,9 @@
       selesaiTrace: "Selesai menggambar! Saatnya warnai 🎨",
       doneTitle: "Hebat!",
       doneSub: "Gambarmu sudah jadi.",
-      gambarLagi: "Gambar lagi",
-      gantiKarakter: "Ganti karakter",
+      gambarLagi: "Ulangi",
+      gantiKarakter: "Pilih lain",
+      lanjutKe: (n) => "Lanjut ke " + n + " →",
       selesaiWarnai: "Selesai",
       undo: "Hapus goresan",
       langBtn: "EN",
@@ -83,8 +84,9 @@
       selesaiTrace: "Drawing done! Time to color 🎨",
       doneTitle: "Awesome!",
       doneSub: "Your picture is ready.",
-      gambarLagi: "Draw again",
-      gantiKarakter: "Change character",
+      gambarLagi: "Again",
+      gantiKarakter: "Pick another",
+      lanjutKe: (n) => "Next: " + n + " →",
       selesaiWarnai: "Done",
       undo: "Clear stroke",
       langBtn: "ID",
@@ -145,6 +147,7 @@
       // The finish card is filled in by showDone, not by data-i18n.
       $("#done-title").textContent = t("doneTitle");
       $("#done-sub").textContent = t("doneSub");
+      updateNextButton();
     }
     // The grid is 111 cards; only rebuild it when it is the screen in view.
     if ($("#screen-pick").classList.contains("active")) renderCharCards();
@@ -1180,12 +1183,32 @@
     sfxSoft();
   }
 
+  /** The card after this one, so a child can carry straight on. */
+  function nextCharacter() {
+    if (!character) return null;
+    const list = window.GAMBOR_CHARACTERS;
+    const i = list.indexOf(character);
+    return i >= 0 && i + 1 < list.length ? list[i + 1] : null;
+  }
+
+  function updateNextButton() {
+    const btn = $("#btn-next");
+    const next = nextCharacter();
+    if (!next) {
+      btn.style.display = "none";
+      return;
+    }
+    btn.style.display = "";
+    btn.textContent = t("lanjutKe", lang === "id" ? next.nameId : next.nameEn);
+  }
+
   function showDone() {
     mode = "done";
     sfxCheer();
     $("#overlay-done").classList.add("visible");
     $("#done-title").textContent = t("doneTitle");
     $("#done-sub").textContent = t("doneSub");
+    updateNextButton();
     draw();
   }
 
@@ -1222,6 +1245,10 @@
     });
 
     $("#btn-done-color").addEventListener("click", showDone);
+    $("#btn-next").addEventListener("click", () => {
+      const next = nextCharacter();
+      if (next) startGame(next.id);
+    });
     $("#btn-gambar-lagi").addEventListener("click", () => {
       $("#overlay-done").classList.remove("visible");
       startGame(character.id);

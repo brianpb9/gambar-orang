@@ -25,7 +25,7 @@ You can also open `index.html` via Files app if Safari allows local file access;
 | `manifest.webmanifest` | Standalone theme |
 | `preview/` | Screenshots |
 
-111 cards in all, 545 guided lines.
+111 cards in all, 529 guided lines.
 
 ## Pictures
 
@@ -132,6 +132,10 @@ is still playable without a stylus.
 
 **Flow:** Trace every line -> **Warnai** (tap region + palette) -> **Hebat!**
 card. Number cards go straight from the last line to **Hebat!**.
+
+The finish card leads with **Lanjut ke <next>** so a child carries straight on
+to the next number rather than repeating the one they just did; Ulangi and
+Pilih lain sit beside it, and the button is hidden on the last card.
 
 On a phone the palette takes a full-width row of its own; sharing the row with
 the Done button turned it into a narrow column five rows tall that ate a third
