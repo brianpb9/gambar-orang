@@ -208,15 +208,13 @@ h1 {
 
 @media (max-width: 700px), (orientation: portrait) {
   .char-grid {
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
-    max-width: 520px;
-    overflow-y: auto;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    max-width: 100%;
   }
 }
 @media (max-width: 420px) {
   .char-grid {
-    grid-template-columns: 1fr;
-    max-width: 300px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -231,9 +229,14 @@ h1 {
   gap: 0.6rem;
   cursor: pointer;
   transition: border-color 0.15s, transform 0.1s;
-  min-height: 160px;
+  /* A grid row takes its height from this, not from the card's contents: a
+     <button> does not grow to fit flex children. Sized for the preview, the
+     gap, and a label that may run to two lines. */
+  min-height: 244px;
 }
-.char-card.wide { grid-column: 1 / -1; }
+/* A scene is drawn wide: two columns suits its shape. Spanning the whole row
+   left the drawing stranded in the middle of a mostly empty card. */
+.char-card.wide { grid-column: span 2; }
 .char-card:active { transform: scale(0.97); }
 .char-card:focus-visible,
 .char-card.selected {
@@ -241,22 +244,33 @@ h1 {
   outline: none;
   box-shadow: 0 0 0 4px var(--accent-soft);
 }
+/* A fixed height, not an aspect ratio: an aspect ratio does not feed into the
+   height of a grid row, so the card either squashed the box or overflowed it.
+   The drawing inside keeps its own proportions via object-fit. */
 .char-preview {
   width: 100%;
-  aspect-ratio: 4/5;
-  max-height: 220px;
-  background: var(--paper);
+  height: 156px;
+  flex: 0 0 auto;
+  background: #FFFEF8;
   border-radius: 12px;
   overflow: hidden;
 }
+/* Height from the box, width from the drawing: that is what keeps a figure
+   its own shape. Forcing both made every preview squashed. */
 .char-preview canvas {
-  width: 100%;
   height: 100%;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
   display: block;
+  margin: 0 auto;
 }
+
+.char-card.wide .char-preview { height: 176px; }
 .char-card span {
   font-weight: 800;
   font-size: 1.15rem;
+  line-height: 1.2;
 }
 
 /* —— Play (trace + color) —— */
