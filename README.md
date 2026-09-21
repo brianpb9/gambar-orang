@@ -1,6 +1,6 @@
 # Gambar Orang — Langkah demi langkah
 
-Kindergarten people-tracing + coloring game for iPad/tablet + stylus (puplen).
+Kindergarten tracing game for iPad/tablet + stylus (puplen).
 
 ## Open on iPad
 
@@ -21,7 +21,7 @@ You can also open `index.html` via Files app if Safari allows local file access;
 | `index.html` | Shell + PWA meta |
 | `styles.css` | Tablet-first UI |
 | `characters.js` | Shared chibi body, hair and outfits, 9 characters + 2 scenes |
-| `game.js` | Per-line guiding, trace scoring, stylus/palm handling, colour fill, i18n, audio |
+| `game.js` | Per-line guiding, trace scoring, stylus/palm handling, i18n, audio |
 | `manifest.webmanifest` | Standalone theme |
 | `preview/` | Screenshots |
 
@@ -62,9 +62,8 @@ not outlines — what is being practised is the path of the pen, so only the
 numeral is traced. The board behind it is not: drawing a rectangle teaches
 nothing and stood between the child and finishing each of the hundred cards.
 
-A number card skips colouring entirely (`skipColour`) and goes straight to the
-star: it is handwriting practice, not a colouring page. The board fills itself
-in so the finished card still looks finished.
+The board fills itself in when the number is finished, so the card still looks
+like a card.
 
 A card is 200 units wide per digit, so the tolerance (which follows the canvas)
 keeps a 1 and a 100 feeling the same under the hand.
@@ -132,22 +131,20 @@ zigzag are.
 1.5s — palm rejection. After that window a finger works normally, so the game
 is still playable without a stylus.
 
-**Flow:** Trace every line -> **Warnai** (tap region + palette) -> **Hebat!**
-card. Number cards go straight from the last line to **Hebat!**.
+**Flow:** Trace every line -> the picture fills itself in with its own colours
+-> **Hebat!** card. There is no colouring step; it was removed at the user's
+request. `fillRegions` and their `defaultColor` are still what paints the
+finished picture and the cards on the picking screen.
 
 The finish card leads with **Lanjut ke <next>** so a child carries straight on
 to the next number rather than repeating the one they just did; Ulangi and
 Pilih lain sit beside it, and the button is hidden on the last card.
 
-On a phone the palette takes a full-width row of its own; sharing the row with
-the Done button turned it into a narrow column five rows tall that ate a third
-of the screen and cropped the drawing.
-
 ### Editing the artwork
 
 `characters.js` builds every path from helpers (`ell` for ellipses, `mir` to
 mirror around the centre line x=200) on top of one shared body, so a change to
-the head or the arms applies to all four kids. Two rules keep it rendering
+the head or the arms applies to all of them. Two rules keep it rendering
 correctly:
 
 - Only absolute `M` / `L` / `C` / `Q` / `Z` — that is all the parser in
@@ -161,7 +158,7 @@ correctly:
   header as the instruction.
 - `mir` mirrors a path around x=200, `xf` scales and moves one into a scene,
   `weld`/`chain` build a fill out of the very lines the child traces, so a
-  colour region can never drift away from its outline.
+  fill region can never drift away from its outline.
 
 ## UI language
 

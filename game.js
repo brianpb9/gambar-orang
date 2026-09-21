@@ -1,5 +1,8 @@
 /**
- * Gambar Orang — step-by-step people tracing + coloring for TK / iPad stylus
+ * Gambar Orang — step-by-step tracing for TK / iPad stylus.
+ *
+ * A card is traced line by line and then shown finished, in its own colours.
+ * There is no colouring step: it was removed at the user's request.
  */
 (function () {
   "use strict";
@@ -45,21 +48,18 @@
       stepOf: (n, t) => `Langkah ${n}/${t}`,
       lineOf: (n, t) => `garis ${n}/${t}`,
       hintTrace: "Ikuti garis putus-putus sampai habis ✎",
-      hintColor: "Sentuh bagian, lalu pilih warna",
-      region: "Bagian",
       cobaLagi: "Coba lagi ✨",
       kurangRapi: "Pelan-pelan, ikuti garisnya ✨",
       belumSelesai: "Terusin sampai ujung ya ✎",
       hebat: "Hebat! ⭐",
       garisSelesai: "Bagus! Garis berikutnya…",
       langkahSelesai: "Hebat! Lanjut langkah…",
-      selesaiTrace: "Selesai menggambar! Saatnya warnai 🎨",
+      selesaiTrace: "Selesai! ⭐",
       doneTitle: "Hebat!",
       doneSub: "Gambarmu sudah jadi.",
       gambarLagi: "Ulangi",
       gantiKarakter: "Pilih lain",
       lanjutKe: (n) => "Lanjut ke " + n + " →",
-      selesaiWarnai: "Selesai",
       undo: "Hapus goresan",
       langBtn: "EN",
     },
@@ -73,21 +73,18 @@
       stepOf: (n, t) => `Step ${n}/${t}`,
       lineOf: (n, t) => `line ${n}/${t}`,
       hintTrace: "Follow the dashed line all the way ✎",
-      hintColor: "Tap a part, then pick a color",
-      region: "Part",
       cobaLagi: "Try again ✨",
       kurangRapi: "Slow down and follow the line ✨",
       belumSelesai: "Keep going to the end ✎",
       hebat: "Great! ⭐",
       garisSelesai: "Nice! Next line…",
       langkahSelesai: "Great! Next step…",
-      selesaiTrace: "Drawing done! Time to color 🎨",
+      selesaiTrace: "All done! ⭐",
       doneTitle: "Awesome!",
       doneSub: "Your picture is ready.",
       gambarLagi: "Again",
       gantiKarakter: "Pick another",
       lanjutKe: (n) => "Next: " + n + " →",
-      selesaiWarnai: "Done",
       undo: "Clear stroke",
       langBtn: "ID",
     },
@@ -97,15 +94,12 @@
   let character = null;
   let stepIndex = 0;
   let strokeIndex = 0; // which guided line inside the current step
-  let mode = "trace"; // trace | color | done
+  let mode = "trace"; // trace | finish-pending | done
   let covered = []; // bool per sample for the current guided line
   let samples = []; // {x,y} design coords
   let completedOutlines = []; // array of path strings already traced
   let kidStrokes = []; // completed step strokes as point arrays
   let currentStroke = null; // [{x,y}] design space
-  let fillColors = {}; // regionId -> color
-  let selectedColor = null;
-  let selectedRegion = null;
   let drawing = false;
   let activePointerId = null;
   let strokeMarked = []; // sample indices this pen-down covered, for rollback
@@ -120,7 +114,7 @@
   let lastPenPt = null;
   let orderMatters = false; // false on shapes too small to sweep along
   let lastPenAt = 0;
-  let colourTimer = null;
+  let finishTimer = null;
   let audioCtx = null;
   let reducedMotion = false;
 
@@ -432,19 +426,8 @@
     drawPaperBg();
     withDesignTransform(() => {
       // Color fills (under outlines)
-      if (character && (mode === "color" || mode === "done")) {
-        for (const r of character.fillRegions) {
-          const col = fillColors[r.id] || r.defaultColor;
-          // Only show default lightly until user colored? Show always in color mode with defaults as soft
-          if (fillColors[r.id]) {
-            fillPath(r.path, fillColors[r.id]);
-          } else if (mode === "color") {
-            // soft preview tint
-            ctx.globalAlpha = 0.15;
-            fillPath(r.path, r.defaultColor);
-            ctx.globalAlpha = 1;
-          }
-        }
+      if (character && mode !== "trace") {
+        for (const r of character.fillRegions) fillPath(r.path, r.defaultColor);
       }
 
       // Completed outline paths (black)
@@ -509,15 +492,8 @@
         }
       }
 
-      if (mode === "color" && selectedRegion) {
-        const r = character.fillRegions.find((x) => x.id === selectedRegion);
-        if (r) {
-          strokePath(r.path, { strokeStyle: "#CE93D8", lineWidth: 3, dash: [6, 4] });
-        }
-      }
-
-      // Always draw full completed black outline on top in color/done
-      if (mode === "color" || mode === "done") {
+      // The finished picture keeps its outlines on top of the colours.
+      if (mode !== "trace") {
         for (const d of completedOutlines) {
           strokePath(d, { strokeStyle: "#2C2416", lineWidth: 7 });
         }
@@ -756,16 +732,15 @@
 
     if (lastLine && lastStep) {
       sfxCheer();
-      mode = "color-pending";
-      draw();
-      // A beat to admire the finished drawing before the palette appears. If
+      showToast(t("selesaiTrace"), "cheer");
+      // A beat to see the picture complete itself before the star card. If
       // they leave or start another card first, this must not land on it.
-      colourTimer = setTimeout(() => {
-        colourTimer = null;
-        if (mode !== "color-pending") return;
-        if (character.skipColour) finishWithoutColouring();
-        else enterColorMode();
-      }, reducedMotion ? 200 : 700);
+      mode = "finish-pending";
+      draw();
+      finishTimer = setTimeout(() => {
+        finishTimer = null;
+        if (mode === "finish-pending") showDone();
+      }, reducedMotion ? 300 : 900);
       return;
     }
 
@@ -781,33 +756,6 @@
     }
     loadStrokeSamples();
     updateStepUI();
-    draw();
-  }
-
-  /**
-   * Cards that are handwriting practice have nothing to colour. Fill them in
-   * with their own colours so the finished card still looks finished, and go
-   * straight to the star.
-   */
-  function finishWithoutColouring() {
-    for (const r of character.fillRegions) fillColors[r.id] = r.defaultColor;
-    showDone();
-  }
-
-  function enterColorMode() {
-    mode = "color";
-    currentStroke = null;
-    selectedColor = character.palette[0];
-    selectedRegion = null;
-    fillColors = {};
-    showToast(t("selesaiTrace"), "cheer");
-    updateStepUI();
-    buildPalette();
-    $("#palette").classList.add("visible");
-    $("#region-hint").classList.add("visible");
-    $("#btn-done-color").style.display = "";
-    $("#btn-undo").style.display = "none";
-    $("#hint-trace").style.display = "none";
     draw();
   }
 
@@ -830,11 +778,6 @@
       lineBadge.style.display = "";
       $("#hint-trace").textContent = t("hintTrace");
       $("#hint-trace").style.display = "";
-    } else if (mode === "color") {
-      badge.textContent = lang === "id" ? "Warnai" : "Color";
-      label.textContent = t("hintColor");
-      lineBadge.style.display = "none";
-      $("#hint-trace").style.display = "none";
     } else {
       badge.textContent = "★";
       label.textContent = t("doneTitle");
@@ -849,11 +792,6 @@
       else if (i < stepIndex) d.classList.add("done");
       else if (i === stepIndex) d.classList.add("current");
       dots.appendChild(d);
-    }
-    if (mode === "color" || mode === "done") {
-      const c = document.createElement("span");
-      c.className = "dot color-mode current";
-      dots.appendChild(c);
     }
   }
 
@@ -893,16 +831,11 @@
   }
 
   function onPointerDown(e) {
-    if (mode === "done" || mode === "color-pending") return;
+    if (mode !== "trace") return;
     if (!pointerAllowed(e)) return;
     ensureAudio();
     e.preventDefault();
     try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
-
-    if (mode === "color") {
-      handleColorTap(e);
-      return;
-    }
 
     if (drawing) {
       // A second finger must not hijack the stroke, nor hold a capture.
@@ -1007,63 +940,6 @@
     draw();
   }
 
-  function handleColorTap(e) {
-    const p = screenToDesign(e.clientX, e.clientY);
-    const regions = character.fillRegions.slice().reverse();
-    let hit = null;
-    // isPointInPath(path, x, y): path transformed by CTM; x,y in canvas pixel space
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const rect = canvas.getBoundingClientRect();
-    const cx = (e.clientX - rect.left) * dpr;
-    const cy = (e.clientY - rect.top) * dpr;
-    ctx.save();
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.translate(viewOffsetX, viewOffsetY);
-    ctx.scale(viewScale, viewScale);
-    for (const r of regions) {
-      const path = makePath2D(r.path);
-      if (ctx.isPointInPath(path, cx, cy)) {
-        hit = r;
-        break;
-      }
-    }
-    ctx.restore();
-
-    if (hit) {
-      selectedRegion = hit.id;
-      const name = lang === "id" ? hit.labelId : hit.labelEn;
-      $("#region-hint").textContent = `${t("region")}: ${name}`;
-      if (selectedColor) {
-        fillColors[hit.id] = selectedColor;
-        sfxSoft();
-      }
-      draw();
-    }
-  }
-
-  function buildPalette() {
-    const pal = $("#palette");
-    pal.innerHTML = "";
-    character.palette.forEach((color, i) => {
-      const b = document.createElement("button");
-      b.className = "swatch" + (i === 0 ? " selected" : "");
-      b.style.background = color;
-      b.setAttribute("aria-label", color);
-      b.addEventListener("click", () => {
-        selectedColor = color;
-        $$(".swatch").forEach((s) => s.classList.remove("selected"));
-        b.classList.add("selected");
-        sfxSoft();
-        if (selectedRegion) {
-          fillColors[selectedRegion] = color;
-          draw();
-        }
-      });
-      pal.appendChild(b);
-    });
-    selectedColor = character.palette[0];
-  }
-
   /* —— Character cards —— */
   function renderCharCards() {
     const grid = $("#char-grid");
@@ -1148,8 +1024,8 @@
   }
 
   function startGame(charId) {
-    clearTimeout(colourTimer);
-    colourTimer = null;
+    clearTimeout(finishTimer);
+    finishTimer = null;
     character = window.GAMBOR_CHARACTERS.find((c) => c.id === charId);
     designW = character.width || BASE_W;
     designH = character.height || BASE_H;
@@ -1163,15 +1039,9 @@
     completedOutlines = [];
     kidStrokes = [];
     currentStroke = null;
-    fillColors = {};
-    selectedRegion = null;
     drawing = false;
     activePointerId = null;
     loadStrokeSamples();
-    $("#palette").innerHTML = ""; // drop the last card's colours
-    $("#palette").classList.remove("visible");
-    $("#region-hint").classList.remove("visible");
-    $("#btn-done-color").style.display = "none";
     $("#btn-undo").style.display = "";
     $("#overlay-done").classList.remove("visible");
     showScreen("play");
@@ -1244,7 +1114,6 @@
       sfxRetry();
     });
 
-    $("#btn-done-color").addEventListener("click", showDone);
     $("#btn-next").addEventListener("click", () => {
       const next = nextCharacter();
       if (next) startGame(next.id);
@@ -1312,21 +1181,16 @@
       }
       return mode;
     },
-    fillDefaults: () => {
-      if (!character) return;
-      for (const r of character.fillRegions) fillColors[r.id] = r.defaultColor;
-      draw();
-    },
-    jumpToColor: async () => {
+    finishCard: async () => {
       while (mode === "trace") {
         covered = covered.map(() => true);
         finishStrokeSuccess();
         await new Promise((r) => setTimeout(r, 12));
       }
-      // wait for enterColorMode timeout
-      for (let i = 0; i < 60 && mode !== "color"; i++) {
+      for (let i = 0; i < 60 && mode !== "done"; i++) {
         await new Promise((r) => setTimeout(r, 50));
       }
+      return mode;
     },
   };
 

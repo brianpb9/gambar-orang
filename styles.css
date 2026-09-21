@@ -332,7 +332,6 @@ h1 {
   background: var(--accent);
   transform: scale(1.25);
 }
-.dot.color-mode { background: #CE93D8; }
 
 .canvas-wrap {
   flex: 1;
@@ -391,41 +390,6 @@ h1 {
   min-height: 56px;
 }
 
-.palette {
-  display: none;
-  flex: 1;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-}
-.palette.visible { display: flex; }
-
-.swatch {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 3px solid #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.1s;
-}
-.swatch:active { transform: scale(0.92); }
-.swatch.selected {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
-  transform: scale(1.08);
-}
-
-.region-hint {
-  display: none;
-  font-weight: 700;
-  color: var(--ink-soft);
-  font-size: 0.95rem;
-}
-.region-hint.visible { display: block; }
-
 .hint-trace {
   font-size: 0.9rem;
   color: var(--guide);
@@ -477,20 +441,6 @@ h1 {
     transition-duration: 0.01ms !important;
   }
   .btn-primary { box-shadow: 0 4px 0 #D4653A; }
-}
-
-/* On a phone the palette became a narrow column of swatches beside the button,
-   a third of the screen tall, and the drawing was cropped to fit. Give it a
-   row of its own across the full width. */
-@media (max-width: 560px) {
-  .palette {
-    flex: 1 0 100%;
-    justify-content: flex-start;
-  }
-  .swatch {
-    width: 42px;
-    height: 42px;
-  }
 }
 
 /* Landscape tablet polish */

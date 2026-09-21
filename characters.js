@@ -653,7 +653,6 @@
       wide: true,
       steps: cfg.propsLast ? steps : steps,
       fillRegions: regions,
-      palette: cfg.palette,
     };
   }
 
@@ -747,10 +746,6 @@
     "#FBD24B", "#8FD3A6", "#9FD2EC", "#F7A8C4", "#F5A65B",
     "#C3B2E8", "#7FB7E8", "#F0C987", "#8FD8D2", "#F09B9B",
   ];
-  const NUMBER_PALETTE = [
-    "#FBD24B", "#8FD3A6", "#9FD2EC", "#F7A8C4", "#F5A65B",
-    "#C3B2E8", "#E4604A", "#6DBE72", "#FFFFFF", "#3B2A20",
-  ];
 
   /**
    * One number to trace: each digit is its own step, so a child is walked
@@ -795,13 +790,9 @@
       width: width,
       height: height,
       steps: steps,
-      // Writing practice, not a colouring page: the board is there so the card
-      // reads as a card, and it fills itself in when the number is finished.
-      skipColour: true,
       fillRegions: [
         { id: "board", labelId: "Papan", labelEn: "Board", path: board, defaultColor: BOARD_COLOURS[(band - 1) % BOARD_COLOURS.length] },
       ],
-      palette: NUMBER_PALETTE,
     };
   }
 
@@ -842,7 +833,6 @@
         { id: "shirt", labelId: "Baju", labelEn: "Shirt", path: SHIRT, defaultColor: "#F7D648" },
         { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: SHOES, defaultColor: "#8C93A8" },
       ].concat(faceRegions()),
-      palette: ["#F6CBA6", "#B07C3A", "#C9973F", "#F2B705", "#F7D648", "#3C7DD9", "#8C93A8", "#F7A8A0", "#FFFFFF", "#3B2A20"],
     },
 
     {
@@ -886,7 +876,6 @@
         { id: "shorts", labelId: "Celana", labelEn: "Shorts", path: C2_SHORTS, defaultColor: "#2E5FA3" },
         { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: SHOES, defaultColor: "#8A5A3B" },
       ].concat(faceRegions()),
-      palette: ["#F6CBA6", "#5A3620", "#5FBE7B", "#2E5FA3", "#8A5A3B", "#E4604A", "#F7A8A0", "#FFFFFF", "#3B2A20"],
     },
 
     {
@@ -941,7 +930,6 @@
         { id: "dress", labelId: "Gaun", labelEn: "Dress", path: DRESS, defaultColor: "#F9C2D6" },
         { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: SHOES, defaultColor: "#E0507F" },
       ].concat(faceRegions()),
-      palette: ["#F6CBA6", "#4A3328", "#F9C2D6", "#F08BB0", "#E0507F", "#3C7DD9", "#F7A8A0", "#FFFFFF", "#3B2A20"],
     },
 
     {
@@ -989,7 +977,6 @@
         { id: "overall", labelId: "Overall", labelEn: "Dungarees", path: C4_OVERALL + " " + C4_LEGS.fill, defaultColor: "#2E5FA3" },
         { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: SHOES, defaultColor: "#7A4A2E" },
       ].concat(faceRegions()),
-      palette: ["#F6CBA6", "#8A5A3B", "#F7D648", "#2E5FA3", "#7A4A2E", "#5FBE7B", "#F7A8A0", "#FFFFFF", "#3B2A20"],
     },
 
     {
@@ -1022,7 +1009,6 @@
         { id: "shirt", labelId: "Kemeja", labelEn: "Shirt", path: SHIRT, defaultColor: "#7FB7E8" },
         { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: SHOES, defaultColor: "#5A4030" },
       ].concat(faceRegions()),
-      palette: ["#F6CBA6", "#3E2C21", "#7FB7E8", "#3A4A63", "#5A4030", "#E4604A", "#F7A8A0", "#FFFFFF", "#3B2A20"],
     },
 
     {
@@ -1057,7 +1043,6 @@
         { id: "dress", labelId: "Gaun", labelEn: "Dress", path: DRESS, defaultColor: "#E0719B" },
         { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: SHOES, defaultColor: "#C24A6E" },
       ].concat(faceRegions()),
-      palette: ["#F6CBA6", "#6B4226", "#E0719B", "#C24A6E", "#F7D648", "#3C7DD9", "#F7A8A0", "#FFFFFF", "#3B2A20"],
     },
 
     {
@@ -1091,7 +1076,6 @@
         { id: "shirt", labelId: "Kemeja", labelEn: "Shirt", path: SHIRT, defaultColor: "#8FA8C8" },
         { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: SHOES, defaultColor: "#5A4030" },
       ].concat(faceRegions()),
-      palette: ["#F6CBA6", "#BDB8B2", "#8FA8C8", "#6B7280", "#5A4030", "#5FBE7B", "#F7A8A0", "#FFFFFF", "#3B2A20"],
     },
 
     {
@@ -1127,7 +1111,6 @@
         { id: "dress", labelId: "Gaun", labelEn: "Dress", path: DRESS, defaultColor: "#A9C7E8" },
         { id: "shoes", labelId: "Sepatu", labelEn: "Shoes", path: SHOES, defaultColor: "#7A6A8C" },
       ].concat(faceRegions()),
-      palette: ["#F6CBA6", "#C6C1BB", "#A9C7E8", "#7A6A8C", "#E0719B", "#5FBE7B", "#F7A8A0", "#FFFFFF", "#3B2A20"],
     },
 
     {
@@ -1194,7 +1177,6 @@
         { id: "eyes", labelId: "Mata", labelEn: "Eyes", path: CAT_EYE_L + " " + CAT_EYE_R + " " + CAT_SHINE, defaultColor: "#3B6B4A" },
         { id: "nose", labelId: "Hidung", labelEn: "Nose", path: CAT_NOSE, defaultColor: "#F08BA0" },
       ],
-      palette: ["#E8A15C", "#FBEAD6", "#F7B9C4", "#F08BA0", "#3B6B4A", "#8C7A6B", "#4A4A4A", "#FFFFFF", "#3B2A20"],
     },
 
     /* ══════════════ level 2 — the family photo ══════════════ */
@@ -1226,7 +1208,6 @@
         who(BOY, { key: "kakak", nameId: "Kakak", nameEn: "Big brother", s: 0.6, cx: 510, baseY: 430 }),
         who(GIRL, { key: "adik", nameId: "Adik", nameEn: "Little sister", s: 0.6, cx: 670, baseY: 430 }),
       ],
-      palette: ["#F6CBA6", "#3E2C21", "#6B4226", "#7FB7E8", "#E0719B", "#5FBE7B", "#F9C2D6", "#3A4A63", "#FBD24B", "#FFFFFF", "#3B2A20"],
     }),
 
     /* ══════════ level 3 — the family, the house, the tree, the cat ══════════ */
@@ -1307,7 +1288,6 @@
         who(MUM, { key: "ibu", nameId: "Ibu", nameEn: "Mum", s: 0.58, cx: 210, baseY: 470 }),
         who(BOY, { key: "anak", nameId: "Anak", nameEn: "Child", s: 0.46, cx: 335, baseY: 470 }),
       ],
-      palette: ["#F6CBA6", "#8A5A3B", "#6DBE72", "#D2604F", "#F3E2C2", "#9FD2EC", "#E8A15C", "#FBD24B", "#7FB7E8", "#E0719B", "#FFFFFF", "#3B2A20"],
     }),
   ];
 
